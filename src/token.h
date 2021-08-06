@@ -6,10 +6,10 @@
 
 enum token_id
 {
-    NEWLINE,
-    WORD,
-    HMM,
-    SLASH,
+    TOKEN_NEWLINE,
+    TOKEN_WORD,
+    TOKEN_HMM,
+    TOKEN_SLASH,
 };
 
 #define TOKEN_LINE_MAX 256
@@ -29,8 +29,6 @@ struct token
 void token_init(struct token *token);
 bool token_next(FILE *restrict fd, struct token *t, int *rc);
 
-#define TOKEN_DECL(name)                                                       \
-    struct token name;                                                         \
-    token_init(&name);
+#define TOKEN_INIT(name) token_init(&name)
 
 #endif

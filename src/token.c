@@ -14,37 +14,37 @@ static bool next_line(FILE *restrict fd, char line[TOKEN_LINE_MAX], int *rc);
 
 void token_init(struct token *token)
 {
-    token->id = NEWLINE;
+    token->id = TOKEN_NEWLINE;
     memset(token->line.data, '\0', TOKEN_LINE_MAX);
     token->line.begin = token->line.data;
     token->line.end = token->line.data;
     token->len = 0;
 }
 
-bool token_next(FILE *restrict fd, struct token *t, int *rc)
+bool token_next(FILE *restrict fd, struct token *tok, int *rc)
 {
     *rc = 0;
-    if (t->line.end[0] == '\0')
+    if (tok->line.end[0] == '\0')
     {
-        if (!next_line(fd, t->line.data, rc))
+        if (!next_line(fd, tok->line.data, rc))
             return false;
-        t->line.begin = t->line.data;
-        t->line.end = t->line.data;
+        tok->line.begin = tok->line.data;
+        tok->line.end = tok->line.data;
     }
-    t->line.begin = t->line.end + strspn(t->line.end, DELIM);
-    t->line.end = t->line.begin + strcspn(t->line.begin, DELIM "\n");
-    if (*t->line.begin == '\n')
-        t->line.end++;
-    t->len = (unsigned)(t->line.end - t->line.begin);
+    tok->line.begin = tok->line.end + strspn(tok->line.end, DELIM);
+    tok->line.end = tok->line.begin + strcspn(tok->line.begin, DELIM "\n");
+    if (*tok->line.begin == '\n')
+        tok->line.end++;
+    tok->len = (unsigned)(tok->line.end - tok->line.begin);
 
-    if (TOKEN(t, "\n"))
-        t->id = NEWLINE;
-    else if (TOKEN(t, "//"))
-        t->id = SLASH;
-    else if (TOKEN(t, "HMM"))
-        t->id = HMM;
+    if (TOKEN(tok, "\n"))
+        tok->id = TOKEN_NEWLINE;
+    else if (TOKEN(tok, "//"))
+        tok->id = TOKEN_SLASH;
+    else if (TOKEN(tok, "HMM"))
+        tok->id = TOKEN_HMM;
     else
-        t->id = WORD;
+        tok->id = TOKEN_WORD;
 
     return true;
 }
