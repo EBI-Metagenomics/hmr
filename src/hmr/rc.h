@@ -10,6 +10,7 @@ enum hmr_rc
     HMR_IOERROR,
     HMR_RUNTIMEERROR,
     HMR_PARSEERROR,
+    HMR_ENDOFFILE,
 };
 
 #endif

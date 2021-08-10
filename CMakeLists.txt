@@ -15,11 +15,9 @@ if("${isSystemDir}" STREQUAL "-1")
   set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 endif()
 
-add_library(hmr src/fsm.c src/token.c)
+add_library(hmr src/fsm.c src/token.c src/hmr.c src/prof.c src/node.c)
 add_library(HMR::hmr ALIAS hmr)
 
-# Write out mytools_export.h to the current binary directory Must include
-# ${CMAKE_CURRENT_BINARY_DIR} in the target's search path.
 include(GenerateExportHeader)
 generate_export_header(
   hmr
@@ -62,8 +60,8 @@ endif()
 
 target_include_directories(
   hmr
-  PUBLIC $<INSTALL_INTERFACE:include>
-         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  PUBLIC $<INSTALL_INTERFACE:src>
+         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
          $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
   PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set_target_properties(hmr PROPERTIES VERSION ${PROJECT_VERSION})
@@ -93,9 +91,10 @@ install(
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
   PUBLIC_HEADER DESTINATION include)
-install(DIRECTORY include/ DESTINATION include)
+# install(DIRECTORY include/ DESTINATION include)
+install(DIRECTORY src/hmr/ DESTINATION hmr)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/hmr/export.h
-              ${CMAKE_CURRENT_BINARY_DIR}/hmr/config.h DESTINATION include/hmr)
+              ${CMAKE_CURRENT_BINARY_DIR}/hmr/config.h DESTINATION hmr)
 install(
   EXPORT hmr-targets
   FILE hmr-targets.cmake
@@ -108,3 +107,6 @@ configure_package_config_file(
   NO_SET_AND_CHECK_MACRO)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/hmr-config.cmake
         DESTINATION lib/cmake/hmr)
+
+enable_testing()
+add_subdirectory(test)

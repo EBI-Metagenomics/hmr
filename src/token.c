@@ -1,47 +1,46 @@
 #include "token.h"
-#include <stdbool.h>
-#include <stdio.h>
 #include <string.h>
 
-#define TOKEN_MAX 64
 #define DELIM " \t\r"
 
 #define ARRLEN(x) (sizeof(x) / sizeof(x[0]))
 #define STRLEN(x) (ARRLEN(x) - 1)
 #define TOKEN(t, s) (t->len == STRLEN(s) && !strncmp(t->line.begin, s, t->len))
 
-static bool next_line(FILE *restrict fd, char line[TOKEN_LINE_MAX], int *rc);
+static void add_space_before_newline(char line[TOKEN_LINE_MAX]);
+static bool next_line(FILE *restrict fd, char line[TOKEN_LINE_MAX],
+                      enum hmr_rc *rc);
 
-void token_init(struct token *token)
+void token_init(struct token *tok)
 {
-    token->id = TOKEN_NEWLINE;
-    memset(token->line.data, '\0', TOKEN_LINE_MAX);
-    token->line.begin = token->line.data;
-    token->line.end = token->line.data;
-    token->len = 0;
+    tok->id = TOKEN_NEWLINE;
+    memset(tok->line, '\0', TOKEN_LINE_MAX);
+    tok->value = tok->line;
+    tok->rc = HMR_SUCCESS;
 }
 
-bool token_next(FILE *restrict fd, struct token *tok, int *rc)
+bool token_next(FILE *restrict fd, struct token *tok)
 {
-    *rc = 0;
-    if (tok->line.end[0] == '\0')
-    {
-        if (!next_line(fd, tok->line.data, rc))
-            return false;
-        tok->line.begin = tok->line.data;
-        tok->line.end = tok->line.data;
-    }
-    tok->line.begin = tok->line.end + strspn(tok->line.end, DELIM);
-    tok->line.end = tok->line.begin + strcspn(tok->line.begin, DELIM "\n");
-    if (*tok->line.begin == '\n')
-        tok->line.end++;
-    tok->len = (unsigned)(tok->line.end - tok->line.begin);
+    tok->rc = HMR_SUCCESS;
 
-    if (TOKEN(tok, "\n"))
+    if (!(tok->value = strtok(NULL, DELIM)))
+    {
+        if (!next_line(fd, tok->line, &tok->rc))
+            return false;
+        tok->value = strtok(tok->line, DELIM);
+
+        if (!tok->value)
+        {
+            tok->rc = HMR_PARSEERROR;
+            return false;
+        }
+    }
+
+    if (!strcmp(tok->value, "\n"))
         tok->id = TOKEN_NEWLINE;
-    else if (TOKEN(tok, "//"))
+    else if (!strcmp(tok->value, "//"))
         tok->id = TOKEN_SLASH;
-    else if (TOKEN(tok, "HMM"))
+    else if (!strcmp(tok->value, "HMM"))
         tok->id = TOKEN_HMM;
     else
         tok->id = TOKEN_WORD;
@@ -49,48 +48,41 @@ bool token_next(FILE *restrict fd, struct token *tok, int *rc)
     return true;
 }
 
-static bool next_line(FILE *restrict fd, char line[TOKEN_LINE_MAX], int *rc)
+static bool next_line(FILE *restrict fd, char line[TOKEN_LINE_MAX],
+                      enum hmr_rc *rc)
 {
-    *rc = 0;
-    char *buff = fgets(line, TOKEN_LINE_MAX, fd);
-    if (!buff)
+    *rc = HMR_SUCCESS;
+
+    if (!fgets(line, TOKEN_LINE_MAX - 1, fd))
     {
         if (feof(fd))
             return false;
 
-        if (ferror(fd))
-        {
-            perror("fgets() failed");
-            clearerr(fd);
-            *rc = 1;
-            return false;
-        }
-
-        line[0] = '\0';
+        perror("fgets() failed");
+        clearerr(fd);
+        *rc = HMR_IOERROR;
+        return false;
     }
 
+    add_space_before_newline(line);
     return true;
 }
 
-#if 0
-int main(int argc, char *argv[])
+static void add_space_before_newline(char line[TOKEN_LINE_MAX])
 {
-    enum token_state state = BEGIN;
-    struct token token;
-    token_init(&token);
-
-    FILE *restrict fd = fopen(argv[1], "r");
-
-    int rc = 0;
-    while (next_token(fd, &token, &rc))
+    unsigned n = (unsigned)strlen(line);
+    if (n > 0)
     {
-        state = step(state, &token);
+        if (line[n - 1] == '\n')
+        {
+            line[n - 1] = ' ';
+            line[n] = '\n';
+            line[n + 1] = '\0';
+        }
+        else
+        {
+            line[n - 1] = '\n';
+            line[n] = '\0';
+        }
     }
-
-    printf("FINAL State: %s\n", name[state]);
-
-    fclose(fd);
-
-    return rc;
 }
-#endif

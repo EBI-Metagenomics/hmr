@@ -1,12 +1,13 @@
 #ifndef TOKEN_H
 #define TOKEN_H
 
+#include "hmr/rc.h"
 #include <stdbool.h>
 #include <stdio.h>
 
 enum token_id
 {
-    TOKEN_NEWLINE,
+    TOKEN_NEWLINE = 0,
     TOKEN_WORD,
     TOKEN_HMM,
     TOKEN_SLASH,
@@ -17,17 +18,13 @@ enum token_id
 struct token
 {
     enum token_id id;
-    struct
-    {
-        char data[TOKEN_LINE_MAX];
-        char const *begin;
-        char const *end;
-    } line;
-    unsigned len;
+    char line[TOKEN_LINE_MAX];
+    char const *value;
+    enum hmr_rc rc;
 };
 
-void token_init(struct token *token);
-bool token_next(FILE *restrict fd, struct token *t, int *rc);
+void token_init(struct token *tok);
+bool token_next(FILE *restrict fd, struct token *tok);
 
 #define TOKEN_INIT(name) token_init(&name)
 
