@@ -18,12 +18,13 @@ enum fsm_state
     FSM_ERROR
 };
 
+struct hmr_aux;
 struct hmr_prof;
 struct token;
 
 static inline void fsm_init(enum fsm_state *state) { *state = FSM_HEADER; }
 
 enum fsm_state fsm_next(enum fsm_state state, struct token const *token,
-                        struct hmr_prof *prof);
+                        struct hmr_aux *aux, struct hmr_prof *prof);
 
 #endif

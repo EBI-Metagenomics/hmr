@@ -3,6 +3,6 @@
 
 struct hmr_node;
 
-void node_reset_tmp(struct hmr_node *node);
+void node_init(struct hmr_node *node);
 
 #endif

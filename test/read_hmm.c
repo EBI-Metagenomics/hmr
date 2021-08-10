@@ -17,8 +17,17 @@ void test_hmm(void)
 
     hmr_open(hmr, fd);
 
-    struct hmr_prof prof;
-    hmr_read(hmr, &prof);
+    HMR_PROF_DECLARE(prof);
+
+    while (hmr_next_prof(hmr, &prof))
+    {
+        while (hmr_next_node(hmr, &prof))
+        {
+        }
+    }
+    /* hmr_prof_dump(&prof, stdout); */
+    /* hmr_node_dump(&prof.node, stdout); */
+
     hmr_close(hmr);
 
     fclose(fd);

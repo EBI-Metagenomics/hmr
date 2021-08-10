@@ -1,39 +1,63 @@
 #include "hmr/prof.h"
 #include "fsm.h"
+#include "hmr.h"
+#include "node.h"
 #include "prof.h"
 #include "token.h"
 
-static void prof_init(struct hmr_prof *prof);
-
-enum hmr_rc hmr_prof_read(struct hmr_prof *prof) { return HMR_SUCCESS; }
-
-enum hmr_rc prof_next(struct hmr_prof *prof, FILE *restrict fd,
-                      enum fsm_state *state, struct token *tok)
+void hmr_prof_dump(struct hmr_prof const *prof, FILE *fd)
 {
-    prof_init(prof);
+    fprintf(fd, "HEADER: %s\n", prof->header);
+    fprintf(fd, "  Name: %s\n", prof->meta.name);
+    fprintf(fd, "   Acc: %s\n", prof->meta.acc);
+    fprintf(fd, "  Desc: %s\n", prof->meta.desc);
+    fprintf(fd, "  Leng: %s\n", prof->meta.leng);
+    fprintf(fd, "  Alph: %s\n", prof->meta.alph);
+    fprintf(fd, "  Name: %s\n", prof->meta.name);
+    fprintf(fd, "  ");
+    for (unsigned i = 0; i < prof->symbols_size; ++i)
+    {
+        fprintf(fd, "       %c", prof->symbols[i]);
+    }
+    fprintf(fd, "\n");
+}
+
+void hmr_prof_init(struct hmr_prof *prof)
+{
+    prof->header[0] = '\0';
+    prof->meta.name[0] = '\0';
+    prof->meta.acc[0] = '\0';
+    prof->meta.desc[0] = '\0';
+    prof->meta.leng[0] = '\0';
+    prof->meta.alph[0] = '\0';
+    prof->symbols_size = 0;
+    prof->symbols[0] = '\0';
+    node_init(&prof->node);
+}
+
+enum hmr_rc prof_next_node(struct hmr_prof *prof, FILE *restrict fd,
+                           struct hmr_aux *aux, enum fsm_state *state,
+                           struct token *tok)
+{
     while (token_next(fd, tok))
     {
-        *state = fsm_next(*state, tok, prof);
+        *state = fsm_next(*state, tok, aux, prof);
+        if (*state == FSM_PAUSE)
+            break;
     }
     return HMR_SUCCESS;
 }
 
-void prof_reset_tmp(struct hmr_prof *prof)
+enum hmr_rc prof_next_prof(struct hmr_prof *prof, FILE *restrict fd,
+                           struct hmr_aux *aux, enum fsm_state *state,
+                           struct token *tok)
 {
-    prof->__.begin = NULL;
-    prof->__.pos = NULL;
-    prof->__.end = NULL;
-}
-
-static void prof_init(struct hmr_prof *prof)
-{
-    prof->header[0] = '\0';
-    prof->meta.NAME[0] = '\0';
-    prof->meta.ACC[0] = '\0';
-    prof->meta.DESC[0] = '\0';
-    prof->meta.LENG[0] = '\0';
-    prof->meta.ALPH[0] = '\0';
-    prof->symbols_size = 0;
-    prof->symbols[0] = '\0';
-    prof_reset_tmp(prof);
+    hmr_prof_init(prof);
+    while (token_next(fd, tok))
+    {
+        *state = fsm_next(*state, tok, aux, prof);
+        if (*state == FSM_PAUSE)
+            break;
+    }
+    return HMR_SUCCESS;
 }

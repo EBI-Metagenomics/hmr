@@ -5,12 +5,17 @@
 #include <stdio.h>
 
 enum fsm_state;
+struct hmr;
+struct hmr_aux;
 struct hmr_prof;
 struct token;
 
-enum hmr_rc prof_next(struct hmr_prof *prof, FILE *restrict fd,
-                      enum fsm_state *state, struct token *tok);
+enum hmr_rc prof_next_node(struct hmr_prof *prof, FILE *restrict fd,
+                           struct hmr_aux *aux, enum fsm_state *state,
+                           struct token *tok);
 
-void prof_reset_tmp(struct hmr_prof *prof);
+enum hmr_rc prof_next_prof(struct hmr_prof *prof, FILE *restrict fd,
+                           struct hmr_aux *aux, enum fsm_state *state,
+                           struct token *tok);
 
 #endif

@@ -4,13 +4,14 @@
 enum hmr_rc
 {
     HMR_SUCCESS = 0,
+    HMR_ENDPROF,
+    HMR_ENDFILE,
     HMR_FAILURE,
     HMR_OUTOFMEM,
     HMR_ILLEGALARG,
     HMR_IOERROR,
     HMR_RUNTIMEERROR,
     HMR_PARSEERROR,
-    HMR_ENDOFFILE,
 };
 
 #endif

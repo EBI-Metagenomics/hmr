@@ -1,4 +1,5 @@
 #include "fsm.h"
+#include "hmr.h"
 #include "hmr/prof.h"
 #include "node.h"
 #include "prof.h"
@@ -10,41 +11,41 @@ struct trans
 {
     enum fsm_state const next;
     void (*action)(struct token const *tok, enum fsm_state state,
-                   struct hmr_prof *prof);
+                   struct hmr_aux *aux, struct hmr_prof *prof);
 };
 
 static void nop(struct token const *token, enum fsm_state state,
-                struct hmr_prof *prof);
+                struct hmr_aux *aux, struct hmr_prof *prof);
 
 static void header(struct token const *tok, enum fsm_state state,
-                   struct hmr_prof *prof);
+                   struct hmr_aux *aux, struct hmr_prof *prof);
 
 static void field_name(struct token const *tok, enum fsm_state state,
-                       struct hmr_prof *prof);
+                       struct hmr_aux *aux, struct hmr_prof *prof);
 
 static void field_content(struct token const *tok, enum fsm_state state,
-                          struct hmr_prof *prof);
+                          struct hmr_aux *aux, struct hmr_prof *prof);
 
 static void hmm(struct token const *tok, enum fsm_state state,
-                struct hmr_prof *prof);
+                struct hmr_aux *aux, struct hmr_prof *prof);
 
 static void symbol(struct token const *tok, enum fsm_state state,
-                   struct hmr_prof *prof);
+                   struct hmr_aux *aux, struct hmr_prof *prof);
 
 static void arrow(struct token const *tok, enum fsm_state state,
-                  struct hmr_prof *prof);
+                  struct hmr_aux *aux, struct hmr_prof *prof);
 
 static void compo(struct token const *tok, enum fsm_state state,
-                  struct hmr_prof *prof);
+                  struct hmr_aux *aux, struct hmr_prof *prof);
 
 static void insert(struct token const *tok, enum fsm_state state,
-                   struct hmr_prof *prof);
+                   struct hmr_aux *aux, struct hmr_prof *prof);
 
 static void match(struct token const *tok, enum fsm_state state,
-                  struct hmr_prof *prof);
+                  struct hmr_aux *aux, struct hmr_prof *prof);
 
 static void trans(struct token const *tok, enum fsm_state state,
-                  struct hmr_prof *prof);
+                  struct hmr_aux *aux, struct hmr_prof *prof);
 
 static struct trans const transition[][4] = {
     [FSM_BEGIN] = {[TOKEN_WORD] = {FSM_HEADER, &header},
@@ -97,183 +98,141 @@ static struct trans const transition[][4] = {
                      [TOKEN_SLASH] = {FSM_ERROR, &nop}},
 };
 
-static char const *const state_name[] = {
-    [FSM_BEGIN] = "BEGIN",   [FSM_HEADER] = "HEADER",
-    [FSM_NAME] = "NAME",     [FSM_CONTENT] = "CONTENT",
-    [FSM_SYMBOL] = "SYMBOL", [FSM_ARROW] = "ARROW",
-    [FSM_COMPO] = "COMPO",   [FSM_INSERT] = "INSERT",
-    [FSM_MATCH] = "MATCH",   [FSM_TRANS] = "TRANS",
-    [FSM_PAUSE] = "PAUSE",   [FSM_SLASHED] = "SLASHED",
-    [FSM_ERROR] = "ERROR"};
-
 enum fsm_state fsm_next(enum fsm_state state, struct token const *tok,
-                        struct hmr_prof *prof)
+                        struct hmr_aux *aux, struct hmr_prof *prof)
 {
     unsigned row = (unsigned)state;
     unsigned col = (unsigned)tok->id;
     struct trans const *const t = &transition[row][col];
-    t->action(tok, state, prof);
+    t->action(tok, state, aux, prof);
     return t->next;
 }
 
 static void nop(struct token const *token, enum fsm_state state,
-                struct hmr_prof *prof)
+                struct hmr_aux *aux, struct hmr_prof *prof)
 {
-    if (token->id == TOKEN_SLASH)
-    {
-        printf("SLASH token\n");
-        return;
-    }
-    printf("State: %s ", state_name[state]);
-    if (*token->value == '\n')
-        printf("Token: TOKEN_NEWLINE:[\\n]\n");
-    else
-    {
-        if (token->id == TOKEN_WORD)
-            printf("Token: TOKEN_WORD:[%s]\n", token->value);
-        else if (token->id == TOKEN_HMM)
-            printf("Token: TOKEN_HMM:[%s]\n", token->value);
-        else if (token->id == TOKEN_SLASH)
-            printf("Token: TOKEN_SLASH:[%s]\n", token->value);
-    }
+    return;
 }
 
 static void header(struct token const *tok, enum fsm_state state,
-                   struct hmr_prof *prof)
+                   struct hmr_aux *aux, struct hmr_prof *prof)
 {
     if (tok->id == TOKEN_WORD)
     {
-        if (prof->__.pos > prof->__.begin + 1)
+        if (aux->prof.pos > aux->prof.begin + 1)
         {
-            *(prof->__.pos - 1) = ' ';
-            prof->__.pos++;
+            *(aux->prof.pos - 1) = ' ';
+            aux->prof.pos++;
         }
         else
         {
-            prof->__.begin = prof->header;
-            prof->__.pos = prof->__.begin + 1;
-            prof->__.end = prof->__.begin + HMR_HEADER_MAX;
+            aux->prof.begin = prof->header;
+            aux->prof.pos = aux->prof.begin + 1;
+            aux->prof.end = aux->prof.begin + HMR_HEADER_MAX;
         }
-        prof->__.pos = memccpy(prof->__.pos - 1, tok->value, '\0',
-                               prof->__.end - prof->__.pos);
+        aux->prof.pos = memccpy(aux->prof.pos - 1, tok->value, '\0',
+                                aux->prof.end - aux->prof.pos);
     }
     else if (tok->id == TOKEN_NEWLINE)
     {
-        *(prof->__.pos - 1) = '\0';
-        prof_reset_tmp(prof);
+        *(aux->prof.pos - 1) = '\0';
+        hmr_aux_reset(aux);
     }
 }
 
 static void field_name(struct token const *tok, enum fsm_state state,
-                       struct hmr_prof *prof)
+                       struct hmr_aux *aux, struct hmr_prof *prof)
 {
     if (!strcmp(tok->value, "NAME"))
     {
-        prof->__.begin = prof->meta.NAME;
-        prof->__.end = prof->__.begin + HMR_NAME_MAX;
+        aux->prof.begin = prof->meta.name;
+        aux->prof.end = aux->prof.begin + HMR_NAME_MAX;
     }
     else if (!strcmp(tok->value, "ACC"))
     {
-        prof->__.begin = prof->meta.ACC;
-        prof->__.end = prof->__.begin + HMR_ACC_MAX;
+        aux->prof.begin = prof->meta.acc;
+        aux->prof.end = aux->prof.begin + HMR_ACC_MAX;
     }
     else if (!strcmp(tok->value, "DESC"))
     {
-        prof->__.begin = prof->meta.DESC;
-        prof->__.end = prof->__.begin + HMR_DESC_MAX;
+        aux->prof.begin = prof->meta.desc;
+        aux->prof.end = aux->prof.begin + HMR_DESC_MAX;
     }
     else if (!strcmp(tok->value, "LENG"))
     {
-        prof->__.begin = prof->meta.LENG;
-        prof->__.end = prof->__.begin + HMR_LENG_MAX;
+        aux->prof.begin = prof->meta.leng;
+        aux->prof.end = aux->prof.begin + HMR_LENG_MAX;
     }
     else if (!strcmp(tok->value, "ALPH"))
     {
-        prof->__.begin = prof->meta.ALPH;
-        prof->__.end = prof->__.begin + HMR_ALPH_MAX;
+        aux->prof.begin = prof->meta.alph;
+        aux->prof.end = aux->prof.begin + HMR_ALPH_MAX;
     }
     else
     {
-        prof->__.begin = NULL;
-        prof->__.pos = NULL;
-        prof->__.end = NULL;
+        aux->prof.begin = NULL;
+        aux->prof.pos = NULL;
+        aux->prof.end = NULL;
         return;
     }
-    prof->__.pos = prof->__.begin + 1;
+    aux->prof.pos = aux->prof.begin + 1;
 }
 
 static void field_content(struct token const *tok, enum fsm_state state,
-                          struct hmr_prof *prof)
+                          struct hmr_aux *aux, struct hmr_prof *prof)
 {
-    if (!prof->__.begin)
+    if (!aux->prof.begin)
         return;
 
     if (tok->id == TOKEN_WORD)
     {
-        if (prof->__.pos > prof->__.begin + 1)
+        if (aux->prof.pos > aux->prof.begin + 1)
         {
-            *(prof->__.pos - 1) = ' ';
-            prof->__.pos++;
+            *(aux->prof.pos - 1) = ' ';
+            aux->prof.pos++;
         }
-        prof->__.pos = memccpy(prof->__.pos - 1, tok->value, '\0',
-                               prof->__.end - prof->__.pos);
+        aux->prof.pos = memccpy(aux->prof.pos - 1, tok->value, '\0',
+                                aux->prof.end - aux->prof.pos);
     }
     else if (tok->id == TOKEN_NEWLINE)
     {
-        *(prof->__.pos - 1) = '\0';
-        prof_reset_tmp(prof);
+        *(aux->prof.pos - 1) = '\0';
+        hmr_aux_reset(aux);
     }
 }
 
 static void hmm(struct token const *tok, enum fsm_state state,
-                struct hmr_prof *prof)
+                struct hmr_aux *aux, struct hmr_prof *prof)
 {
-    prof->__.begin = prof->symbols;
-    prof->__.end = prof->__.begin + HMR_SYMBOLS_MAX;
-    prof->__.pos = prof->__.begin + 1;
+    aux->prof.begin = prof->symbols;
+    aux->prof.end = aux->prof.begin + HMR_SYMBOLS_MAX;
+    aux->prof.pos = aux->prof.begin + 1;
 }
 
 static void symbol(struct token const *tok, enum fsm_state state,
-                   struct hmr_prof *prof)
+                   struct hmr_aux *aux, struct hmr_prof *prof)
 {
     if (tok->id == TOKEN_WORD)
     {
-        *(prof->__.pos - 1) = *tok->value;
-        prof->__.pos++;
+        *(aux->prof.pos - 1) = *tok->value;
+        aux->prof.pos++;
     }
     else if (tok->id == TOKEN_NEWLINE)
     {
-        *(prof->__.pos - 1) = '\0';
+        *(aux->prof.pos - 1) = '\0';
         prof->symbols_size = (unsigned)strlen(prof->symbols);
-        prof_reset_tmp(prof);
+        prof->node.symbols_size = prof->symbols_size;
+        hmr_aux_reset(aux);
     }
 }
 
 static void arrow(struct token const *tok, enum fsm_state state,
-                  struct hmr_prof *prof)
+                  struct hmr_aux *aux, struct hmr_prof *prof)
 {
-}
-
-static inline int to_double(char const *begin, unsigned len, double *val)
-{
-    if (len > 7)
-        return HMR_ILLEGALARG;
-
-    char data[8];
-    memcpy(data, begin, len);
-    data[len] = '\0';
-
-    char *ptr = NULL;
-    *val = strtod(data, &ptr);
-
-    if (*val == 0.0 && data == ptr)
-        return HMR_PARSEERROR;
-
-    return HMR_SUCCESS;
 }
 
 static void compo(struct token const *tok, enum fsm_state state,
-                  struct hmr_prof *prof)
+                  struct hmr_aux *aux, struct hmr_prof *prof)
 {
     if (tok->id == TOKEN_WORD)
     {
@@ -284,16 +243,16 @@ static void compo(struct token const *tok, enum fsm_state state,
                 /* BUG */
                 return;
             }
-            prof->node.__.idx = 0;
+            aux->node.idx = 0;
             return;
         }
-        if (prof->node.__.idx >= prof->symbols_size)
+        if (aux->node.idx >= prof->symbols_size)
         {
             /* BUG */
         }
 
-        /* *(prof->__.pos - 1) = *tok->value; */
-        /* prof->__.pos++; */
+        /* *(aux->prof.pos - 1) = *tok->value; */
+        /* aux->prof.pos++; */
         char *ptr = NULL;
         double val = strtod(tok->value, &ptr);
 
@@ -303,24 +262,24 @@ static void compo(struct token const *tok, enum fsm_state state,
             return;
             /* return HMR_PARSEERROR; */
         }
-        prof->node.compo[prof->node.__.idx++] = val;
+        prof->node.compo[aux->node.idx++] = val;
     }
     else if (tok->id == TOKEN_NEWLINE)
     {
-        if (prof->node.__.idx != prof->symbols_size)
+        if (aux->node.idx != prof->symbols_size)
         {
             /* BUG */
         }
-        node_reset_tmp(&prof->node);
+        hmr_aux_reset(aux);
     }
 }
 
 static void insert(struct token const *tok, enum fsm_state state,
-                   struct hmr_prof *prof)
+                   struct hmr_aux *aux, struct hmr_prof *prof)
 {
     if (tok->id == TOKEN_WORD)
     {
-        if (prof->node.__.idx >= prof->symbols_size)
+        if (aux->node.idx >= prof->symbols_size)
         {
             /* BUG */
         }
@@ -334,24 +293,26 @@ static void insert(struct token const *tok, enum fsm_state state,
             return;
             /* return HMR_PARSEERROR; */
         }
-        prof->node.insert[prof->node.__.idx++] = val;
+        prof->node.insert[aux->node.idx++] = val;
     }
     else if (tok->id == TOKEN_NEWLINE)
     {
-        if (prof->node.__.idx != prof->symbols_size)
+        if (aux->node.idx != prof->symbols_size)
         {
             /* BUG */
         }
-        node_reset_tmp(&prof->node);
+        hmr_aux_reset(aux);
     }
 }
 
 static void match(struct token const *tok, enum fsm_state state,
-                  struct hmr_prof *prof)
+                  struct hmr_aux *aux, struct hmr_prof *prof)
 {
     if (tok->id == TOKEN_WORD)
     {
-        if (prof->node.__.idx == 0)
+        if (state == FSM_PAUSE)
+            prof->node.idx++;
+        if (aux->node.idx == 0)
         {
             unsigned node_idx = (unsigned)strtoul(tok->value, NULL, 10);
 
@@ -360,10 +321,10 @@ static void match(struct token const *tok, enum fsm_state state,
                 /* BUG */
             }
             printf("Node: %d\n", node_idx);
-            prof->node.__.idx++;
+            aux->node.idx++;
             return;
         }
-        if (prof->node.__.idx > prof->symbols_size)
+        if (aux->node.idx > prof->symbols_size)
         {
             /* BUG */
         }
@@ -377,25 +338,25 @@ static void match(struct token const *tok, enum fsm_state state,
             return;
             /* return HMR_PARSEERROR; */
         }
-        prof->node.match[prof->node.__.idx - 1] = val;
-        prof->node.__.idx++;
+        prof->node.match[aux->node.idx - 1] = val;
+        aux->node.idx++;
     }
     else if (tok->id == TOKEN_NEWLINE)
     {
-        if (prof->node.__.idx != prof->symbols_size + 1)
+        if (aux->node.idx != prof->symbols_size + 1)
         {
             /* BUG */
         }
-        node_reset_tmp(&prof->node);
+        hmr_aux_reset(aux);
     }
 }
 
 static void trans(struct token const *tok, enum fsm_state state,
-                  struct hmr_prof *prof)
+                  struct hmr_aux *aux, struct hmr_prof *prof)
 {
     if (tok->id == TOKEN_WORD)
     {
-        if (prof->node.__.idx >= HMR_TRANS_SIZE)
+        if (aux->node.idx >= HMR_TRANS_SIZE)
         {
             /* BUG */
         }
@@ -409,14 +370,14 @@ static void trans(struct token const *tok, enum fsm_state state,
             return;
             /* return HMR_PARSEERROR; */
         }
-        prof->node.trans[prof->node.__.idx++] = val;
+        prof->node.trans[aux->node.idx++] = val;
     }
     else if (tok->id == TOKEN_NEWLINE)
     {
-        if (prof->node.__.idx != HMR_TRANS_SIZE)
+        if (aux->node.idx != HMR_TRANS_SIZE)
         {
             /* BUG */
         }
-        node_reset_tmp(&prof->node);
+        hmr_aux_reset(aux);
     }
 }

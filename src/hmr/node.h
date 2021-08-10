@@ -1,6 +1,9 @@
 #ifndef HMR_NODE_H
 #define HMR_NODE_H
 
+#include "hmr/export.h"
+#include <stdio.h>
+
 #define HMR_HEADER_MAX 64
 #define HMR_NAME_MAX 64
 #define HMR_ACC_MAX 64
@@ -12,6 +15,8 @@
 
 struct hmr_node
 {
+    unsigned symbols_size;
+    unsigned idx;
     union
     {
         double compo[HMR_SYMBOLS_MAX];
@@ -19,14 +24,8 @@ struct hmr_node
     };
     double insert[HMR_SYMBOLS_MAX];
     double trans[HMR_TRANS_SIZE];
-
-    struct
-    {
-        unsigned idx;
-        double *begin;
-        double *pos;
-        double *end;
-    } __;
 };
+
+HMR_API void hmr_node_dump(struct hmr_node const *node, FILE *fd);
 
 #endif
