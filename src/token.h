@@ -10,6 +10,7 @@ enum token_id
     TOKEN_NEWLINE = 0,
     TOKEN_WORD,
     TOKEN_HMM,
+    TOKEN_COMPO,
     TOKEN_SLASH,
 };
 

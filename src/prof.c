@@ -39,11 +39,31 @@ enum hmr_rc prof_next_node(struct hmr_prof *prof, FILE *restrict fd,
                            struct hmr_aux *aux, enum fsm_state *state,
                            struct token *tok)
 {
+    hmr_aux_reset(aux);
+    /* printf(".. reenter\n"); */
     while (token_next(fd, tok))
     {
+        /* if (tok->id == TOKEN_NEWLINE) */
+        /*     printf("%s: _\n", fsm_name(*state)); */
+        /* else */
+        /*     printf("%s: %s\n", fsm_name(*state), tok->value); */
         *state = fsm_next(*state, tok, aux, prof);
+
         if (*state == FSM_PAUSE)
             break;
+
+        if (*state == FSM_BEGIN)
+        {
+            if (tok->value)
+                return HMR_ENDPROF;
+            return HMR_FAILURE;
+        }
+    }
+    if (*state == FSM_BEGIN)
+    {
+        if (tok->value)
+            return HMR_FAILURE;
+        return HMR_ENDFILE;
     }
     return HMR_SUCCESS;
 }
@@ -53,11 +73,5 @@ enum hmr_rc prof_next_prof(struct hmr_prof *prof, FILE *restrict fd,
                            struct token *tok)
 {
     hmr_prof_init(prof);
-    while (token_next(fd, tok))
-    {
-        *state = fsm_next(*state, tok, aux, prof);
-        if (*state == FSM_PAUSE)
-            break;
-    }
-    return HMR_SUCCESS;
+    return prof_next_node(prof, fd, aux, state, tok);
 }

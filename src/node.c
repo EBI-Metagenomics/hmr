@@ -8,17 +8,17 @@ void hmr_node_dump(struct hmr_node const *node, FILE *fd)
     if (node->idx == 0)
         fprintf(fd, "COMPO");
     else
-        fprintf(fd, "%d", node->idx);
+        fprintf(fd, "%*u", 5, node->idx);
     for (unsigned i = 0; i < node->symbols_size; ++i)
         fprintf(fd, " %.5f", node->compo[i]);
     fprintf(fd, "\n");
 
-    fprintf(fd, "  INS");
+    fprintf(fd, "     ");
     for (unsigned i = 0; i < node->symbols_size; ++i)
         fprintf(fd, " %.5f", node->insert[i]);
     fprintf(fd, "\n");
 
-    fprintf(fd, "TRANS");
+    fprintf(fd, "     ");
     for (unsigned i = 0; i < HMR_TRANS_SIZE; ++i)
         fprintf(fd, " %.5f", node->trans[i]);
     fprintf(fd, "\n");

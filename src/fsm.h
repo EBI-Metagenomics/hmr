@@ -27,4 +27,6 @@ static inline void fsm_init(enum fsm_state *state) { *state = FSM_HEADER; }
 enum fsm_state fsm_next(enum fsm_state state, struct token const *token,
                         struct hmr_aux *aux, struct hmr_prof *prof);
 
+char const *fsm_name(enum fsm_state state);
+
 #endif

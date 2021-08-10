@@ -42,6 +42,8 @@ bool token_next(FILE *restrict fd, struct token *tok)
         tok->id = TOKEN_SLASH;
     else if (!strcmp(tok->value, "HMM"))
         tok->id = TOKEN_HMM;
+    else if (!strcmp(tok->value, "COMPO"))
+        tok->id = TOKEN_COMPO;
     else
         tok->id = TOKEN_WORD;
 

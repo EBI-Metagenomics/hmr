@@ -1,12 +1,15 @@
 add_custom_target(all_tests)
 find_package(hope REQUIRED)
 
-# include(FetchContent) FetchContent_Declare( pfam24 URL
-# https://deciphon.s3.eu-west-2.amazonaws.com/pfam24.dcp.7z URL_HASH
-# SHA1=1d52d936292c3b572efe73ef6830476aa416ced9)
+include(FetchContent)
+FetchContent_Declare(
+  three_profs
+  URL https://hmmer-reader.s3.eu-west-2.amazonaws.com/three-profs.hmm.7z
+  URL_HASH SHA1=099404b43b5c0416061d8e911af785d6fd2ee6f3)
 
-# FetchContent_MakeAvailable(pfam24) FetchContent_GetProperties(pfam24
-# SOURCE_DIR srcdir) set(PFAM24_FILEPATH ${srcdir}/pfam24.dcp)
+FetchContent_MakeAvailable(three_profs)
+FetchContent_GetProperties(three_profs SOURCE_DIR srcdir)
+set(THREE_PROFS_FILEPATH ${srcdir}/three-profs.hmm)
 
 function(hmr_add_test name srcs)
   add_executable(${name} ${srcs})
@@ -23,6 +26,8 @@ function(hmr_add_test name srcs)
     PRE_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory ${TMPDIR})
   target_compile_definitions(${name} PUBLIC "TMPDIR=\"${TMPDIR}\"")
+  target_compile_definitions(
+    ${name} PUBLIC "THREE_PROFS_FILEPATH=\"${THREE_PROFS_FILEPATH}\"")
 endfunction()
 
 hmr_add_test(read_hmm read_hmm.c)
