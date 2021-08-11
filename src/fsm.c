@@ -49,6 +49,8 @@ static enum hmr_rc trans(struct hmr_token const *tok, enum hmr_fsm_state state,
 
 static enum hmr_rc to_double(char const *str, double *val);
 
+static enum hmr_rc check_required_metadata(struct hmr_prof *prof);
+
 static struct trans const transition[][6] = {
     [HMR_FSM_BEGIN] = {[HMR_TOKEN_WORD] = {HMR_FSM_HEADER, &header},
                        [HMR_TOKEN_NEWLINE] = {HMR_FSM_ERROR, &nop},
@@ -250,7 +252,7 @@ static enum hmr_rc hmm(struct hmr_token const *tok, enum hmr_fsm_state state,
     aux->prof.begin = prof->symbols;
     aux->prof.end = aux->prof.begin + HMR_SYMBOLS_MAX;
     aux->prof.pos = aux->prof.begin + 1;
-    return HMR_SUCCESS;
+    return check_required_metadata(prof);
 }
 
 static enum hmr_rc symbol(struct hmr_token const *tok, enum hmr_fsm_state state,
@@ -386,6 +388,19 @@ static enum hmr_rc to_double(char const *str, double *val)
     *val = strtod(str, &ptr);
 
     if (*val == 0.0 && str == ptr)
+        return HMR_PARSEERROR;
+    return HMR_SUCCESS;
+}
+
+static enum hmr_rc check_required_metadata(struct hmr_prof *prof)
+{
+    if (prof->meta.acc[0] == '\0')
+        return HMR_PARSEERROR;
+    if (prof->meta.desc[0] == '\0')
+        return HMR_PARSEERROR;
+    if (prof->meta.leng[0] == '\0')
+        return HMR_PARSEERROR;
+    if (prof->meta.alph[0] == '\0')
         return HMR_PARSEERROR;
     return HMR_SUCCESS;
 }

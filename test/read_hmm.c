@@ -5,6 +5,7 @@ void test_hmm_3profs(void);
 void test_hmm_empty(void);
 void test_hmm_corrupted1(void);
 void test_hmm_corrupted2(void);
+void test_hmm_corrupted3(void);
 
 void check_3profs0(struct hmr_prof *prof);
 void check_3profs1(struct hmr_prof *prof);
@@ -22,6 +23,7 @@ int main(void)
     test_hmm_empty();
     test_hmm_corrupted1();
     test_hmm_corrupted2();
+    test_hmm_corrupted3();
     return hope_status();
 }
 
@@ -138,6 +140,39 @@ void test_hmm_corrupted2(void)
         prof_idx++;
     }
     EQ(prof_idx, 1);
+    EQ(rc, HMR_PARSEERROR);
+
+    hmr_close(&hmr);
+
+    fclose(fd);
+}
+
+void test_hmm_corrupted3(void)
+{
+    FILE *fd = fopen("/Users/horta/data/corrupted3.hmm", "r");
+    NOTNULL(fd);
+    unsigned prof_size[] = {40};
+
+    HMR_DECLARE(hmr);
+
+    EQ(hmr_open(&hmr, fd), HMR_SUCCESS);
+
+    HMR_PROF_DECLARE(prof);
+
+    unsigned prof_idx = 0;
+    enum hmr_rc rc = HMR_SUCCESS;
+    while (!(rc = hmr_next_prof(&hmr, &prof)))
+    {
+        unsigned node_idx = 0;
+        while (!(rc = hmr_next_node(&hmr, &prof)))
+        {
+            node_idx++;
+        }
+        EQ(prof.node.idx, prof_size[prof_idx]);
+        EQ(hmr_prof_length(&prof), 0);
+        prof_idx++;
+    }
+    EQ(prof_idx, 0);
     EQ(rc, HMR_PARSEERROR);
 
     hmr_close(&hmr);

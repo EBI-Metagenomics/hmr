@@ -57,7 +57,11 @@ enum hmr_rc prof_next_node(struct hmr_prof *prof, FILE *restrict fd,
         if (*state == HMR_FSM_ERROR)
             return HMR_PARSEERROR;
         if (*state == HMR_FSM_BEGIN)
+        {
+            if (hmr_prof_length(prof) != prof->node.idx)
+                return HMR_PARSEERROR;
             return HMR_ENDNODE;
+        }
 
     } while (*state != HMR_FSM_PAUSE);
 
