@@ -64,19 +64,7 @@ void test_hmm_empty(void)
 
     HMR_PROF_DECLARE(prof);
 
-    unsigned prof_idx = 0;
-    enum hmr_rc rc = HMR_SUCCESS;
-    while (!(rc = hmr_next_prof(&hmr, &prof)))
-    {
-        unsigned node_idx = 0;
-        while (!(rc = hmr_next_node(&hmr, &prof)))
-        {
-            EQ(prof.node.idx, node_idx);
-            check_prof[prof_idx](&prof);
-            node_idx++;
-        }
-        prof_idx++;
-    }
+    EQ(hmr_next_prof(&hmr, &prof), HMR_ENDFILE);
 
     hmr_close(&hmr);
 
