@@ -11,39 +11,41 @@
 struct trans
 {
     enum hmr_fsm_state const next;
-    void (*action)(struct hmr_token const *tok, enum hmr_fsm_state state,
-                   struct hmr_aux *aux, struct hmr_prof *prof);
+    enum hmr_rc (*action)(struct hmr_token const *tok, enum hmr_fsm_state state,
+                          struct hmr_aux *aux, struct hmr_prof *prof);
 };
 
-static void nop(struct hmr_token const *token, enum hmr_fsm_state state,
-                struct hmr_aux *aux, struct hmr_prof *prof);
-
-static void header(struct hmr_token const *tok, enum hmr_fsm_state state,
-                   struct hmr_aux *aux, struct hmr_prof *prof);
-
-static void field_name(struct hmr_token const *tok, enum hmr_fsm_state state,
+static enum hmr_rc nop(struct hmr_token const *token, enum hmr_fsm_state state,
                        struct hmr_aux *aux, struct hmr_prof *prof);
 
-static void field_content(struct hmr_token const *tok, enum hmr_fsm_state state,
+static enum hmr_rc header(struct hmr_token const *tok, enum hmr_fsm_state state,
                           struct hmr_aux *aux, struct hmr_prof *prof);
 
-static void hmm(struct hmr_token const *tok, enum hmr_fsm_state state,
-                struct hmr_aux *aux, struct hmr_prof *prof);
+static enum hmr_rc field_name(struct hmr_token const *tok,
+                              enum hmr_fsm_state state, struct hmr_aux *aux,
+                              struct hmr_prof *prof);
 
-static void symbol(struct hmr_token const *tok, enum hmr_fsm_state state,
-                   struct hmr_aux *aux, struct hmr_prof *prof);
+static enum hmr_rc field_content(struct hmr_token const *tok,
+                                 enum hmr_fsm_state state, struct hmr_aux *aux,
+                                 struct hmr_prof *prof);
 
-static void compo(struct hmr_token const *tok, enum hmr_fsm_state state,
-                  struct hmr_aux *aux, struct hmr_prof *prof);
+static enum hmr_rc hmm(struct hmr_token const *tok, enum hmr_fsm_state state,
+                       struct hmr_aux *aux, struct hmr_prof *prof);
 
-static void insert(struct hmr_token const *tok, enum hmr_fsm_state state,
-                   struct hmr_aux *aux, struct hmr_prof *prof);
+static enum hmr_rc symbol(struct hmr_token const *tok, enum hmr_fsm_state state,
+                          struct hmr_aux *aux, struct hmr_prof *prof);
 
-static void match(struct hmr_token const *tok, enum hmr_fsm_state state,
-                  struct hmr_aux *aux, struct hmr_prof *prof);
+static enum hmr_rc compo(struct hmr_token const *tok, enum hmr_fsm_state state,
+                         struct hmr_aux *aux, struct hmr_prof *prof);
 
-static void trans(struct hmr_token const *tok, enum hmr_fsm_state state,
-                  struct hmr_aux *aux, struct hmr_prof *prof);
+static enum hmr_rc insert(struct hmr_token const *tok, enum hmr_fsm_state state,
+                          struct hmr_aux *aux, struct hmr_prof *prof);
+
+static enum hmr_rc match(struct hmr_token const *tok, enum hmr_fsm_state state,
+                         struct hmr_aux *aux, struct hmr_prof *prof);
+
+static enum hmr_rc trans(struct hmr_token const *tok, enum hmr_fsm_state state,
+                         struct hmr_aux *aux, struct hmr_prof *prof);
 
 static enum hmr_rc to_double(char const *str, double *val);
 
@@ -127,20 +129,21 @@ enum hmr_fsm_state fsm_next(enum hmr_fsm_state state,
     unsigned row = (unsigned)state;
     unsigned col = (unsigned)tok->id;
     struct trans const *const t = &transition[row][col];
-    t->action(tok, state, aux, prof);
+    if (t->action(tok, state, aux, prof))
+        return HMR_FSM_ERROR;
     return t->next;
 }
 
 char const *fsm_name(enum hmr_fsm_state state) { return state_name[state]; }
 
-static void nop(struct hmr_token const *token, enum hmr_fsm_state state,
-                struct hmr_aux *aux, struct hmr_prof *prof)
+static enum hmr_rc nop(struct hmr_token const *token, enum hmr_fsm_state state,
+                       struct hmr_aux *aux, struct hmr_prof *prof)
 {
-    return;
+    return HMR_SUCCESS;
 }
 
-static void header(struct hmr_token const *tok, enum hmr_fsm_state state,
-                   struct hmr_aux *aux, struct hmr_prof *prof)
+static enum hmr_rc header(struct hmr_token const *tok, enum hmr_fsm_state state,
+                          struct hmr_aux *aux, struct hmr_prof *prof)
 {
     if (tok->id == HMR_TOKEN_WORD)
     {
@@ -163,10 +166,12 @@ static void header(struct hmr_token const *tok, enum hmr_fsm_state state,
         *(aux->prof.pos - 1) = '\0';
         aux_reset(aux);
     }
+    return HMR_SUCCESS;
 }
 
-static void field_name(struct hmr_token const *tok, enum hmr_fsm_state state,
-                       struct hmr_aux *aux, struct hmr_prof *prof)
+static enum hmr_rc field_name(struct hmr_token const *tok,
+                              enum hmr_fsm_state state, struct hmr_aux *aux,
+                              struct hmr_prof *prof)
 {
     if (!strcmp(tok->value, "NAME"))
     {
@@ -198,18 +203,21 @@ static void field_name(struct hmr_token const *tok, enum hmr_fsm_state state,
         aux->prof.begin = NULL;
         aux->prof.pos = NULL;
         aux->prof.end = NULL;
-        return;
+        return HMR_SUCCESS;
     }
     aux->prof.pos = aux->prof.begin + 1;
+    return HMR_SUCCESS;
 }
 
-static void field_content(struct hmr_token const *tok, enum hmr_fsm_state state,
-                          struct hmr_aux *aux, struct hmr_prof *prof)
+static enum hmr_rc field_content(struct hmr_token const *tok,
+                                 enum hmr_fsm_state state, struct hmr_aux *aux,
+                                 struct hmr_prof *prof)
 {
     if (!aux->prof.begin)
-        return;
+        return HMR_SUCCESS;
 
-    if (tok->id == HMR_TOKEN_WORD)
+    if (tok->id == HMR_TOKEN_WORD || tok->id == HMR_TOKEN_HMM ||
+        tok->id == HMR_TOKEN_COMPO)
     {
         if (aux->prof.pos > aux->prof.begin + 1)
         {
@@ -224,18 +232,20 @@ static void field_content(struct hmr_token const *tok, enum hmr_fsm_state state,
         *(aux->prof.pos - 1) = '\0';
         aux_reset(aux);
     }
+    return HMR_SUCCESS;
 }
 
-static void hmm(struct hmr_token const *tok, enum hmr_fsm_state state,
-                struct hmr_aux *aux, struct hmr_prof *prof)
+static enum hmr_rc hmm(struct hmr_token const *tok, enum hmr_fsm_state state,
+                       struct hmr_aux *aux, struct hmr_prof *prof)
 {
     aux->prof.begin = prof->symbols;
     aux->prof.end = aux->prof.begin + HMR_SYMBOLS_MAX;
     aux->prof.pos = aux->prof.begin + 1;
+    return HMR_SUCCESS;
 }
 
-static void symbol(struct hmr_token const *tok, enum hmr_fsm_state state,
-                   struct hmr_aux *aux, struct hmr_prof *prof)
+static enum hmr_rc symbol(struct hmr_token const *tok, enum hmr_fsm_state state,
+                          struct hmr_aux *aux, struct hmr_prof *prof)
 {
     if (tok->id == HMR_TOKEN_WORD)
     {
@@ -249,17 +259,17 @@ static void symbol(struct hmr_token const *tok, enum hmr_fsm_state state,
         prof->node.symbols_size = prof->symbols_size;
         aux_reset(aux);
     }
+    return HMR_SUCCESS;
 }
 
-static void compo(struct hmr_token const *tok, enum hmr_fsm_state state,
-                  struct hmr_aux *aux, struct hmr_prof *prof)
+static enum hmr_rc compo(struct hmr_token const *tok, enum hmr_fsm_state state,
+                         struct hmr_aux *aux, struct hmr_prof *prof)
 {
     if (tok->id == HMR_TOKEN_WORD)
     {
         if (aux->node.idx >= prof->symbols_size)
         {
-            /* BUG */
-            return;
+            return HMR_PARSEERROR;
         }
         to_double(tok->value, prof->node.compo + aux->node.idx++);
     }
@@ -267,22 +277,21 @@ static void compo(struct hmr_token const *tok, enum hmr_fsm_state state,
     {
         if (aux->node.idx != prof->symbols_size)
         {
-            /* BUG */
-            return;
+            return HMR_PARSEERROR;
         }
         aux_reset(aux);
     }
+    return HMR_SUCCESS;
 }
 
-static void insert(struct hmr_token const *tok, enum hmr_fsm_state state,
-                   struct hmr_aux *aux, struct hmr_prof *prof)
+static enum hmr_rc insert(struct hmr_token const *tok, enum hmr_fsm_state state,
+                          struct hmr_aux *aux, struct hmr_prof *prof)
 {
     if (tok->id == HMR_TOKEN_WORD)
     {
         if (aux->node.idx >= prof->symbols_size)
         {
-            /* BUG */
-            return;
+            return HMR_PARSEERROR;
         }
         to_double(tok->value, prof->node.insert + aux->node.idx++);
     }
@@ -290,15 +299,15 @@ static void insert(struct hmr_token const *tok, enum hmr_fsm_state state,
     {
         if (aux->node.idx != prof->symbols_size)
         {
-            /* BUG */
-            return;
+            return HMR_PARSEERROR;
         }
         aux_reset(aux);
     }
+    return HMR_SUCCESS;
 }
 
-static void match(struct hmr_token const *tok, enum hmr_fsm_state state,
-                  struct hmr_aux *aux, struct hmr_prof *prof)
+static enum hmr_rc match(struct hmr_token const *tok, enum hmr_fsm_state state,
+                         struct hmr_aux *aux, struct hmr_prof *prof)
 {
     if (tok->id == HMR_TOKEN_WORD)
     {
@@ -308,21 +317,19 @@ static void match(struct hmr_token const *tok, enum hmr_fsm_state state,
 
             if (i == 0)
             {
-                /* BUG */
-                return;
+                return HMR_PARSEERROR;
             }
             prof->node.idx = i;
-            return;
+            return HMR_SUCCESS;
         }
         if (aux->node.idx >= prof->symbols_size)
         {
             if (aux->node.idx >= prof->symbols_size + HMR_MATCH_EXCESS_SIZE)
             {
-                /* BUG */
-                return;
+                return HMR_PARSEERROR;
             }
             aux->node.idx++;
-            return;
+            return HMR_SUCCESS;
         }
         to_double(tok->value, prof->node.match + aux->node.idx++);
     }
@@ -330,22 +337,21 @@ static void match(struct hmr_token const *tok, enum hmr_fsm_state state,
     {
         if (aux->node.idx > prof->symbols_size + HMR_MATCH_EXCESS_SIZE)
         {
-            /* BUG */
-            return;
+            return HMR_PARSEERROR;
         }
         aux_reset(aux);
     }
+    return HMR_SUCCESS;
 }
 
-static void trans(struct hmr_token const *tok, enum hmr_fsm_state state,
-                  struct hmr_aux *aux, struct hmr_prof *prof)
+static enum hmr_rc trans(struct hmr_token const *tok, enum hmr_fsm_state state,
+                         struct hmr_aux *aux, struct hmr_prof *prof)
 {
     if (tok->id == HMR_TOKEN_WORD)
     {
         if (aux->node.idx >= HMR_TRANS_SIZE)
         {
-            /* BUG */
-            return;
+            return HMR_PARSEERROR;
         }
         to_double(tok->value, prof->node.trans + aux->node.idx++);
     }
@@ -353,11 +359,11 @@ static void trans(struct hmr_token const *tok, enum hmr_fsm_state state,
     {
         if (aux->node.idx != HMR_TRANS_SIZE)
         {
-            /* BUG */
-            return;
+            return HMR_PARSEERROR;
         }
         aux_reset(aux);
     }
+    return HMR_SUCCESS;
 }
 
 static enum hmr_rc to_double(char const *str, double *val)
