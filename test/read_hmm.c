@@ -84,7 +84,7 @@ void test_hmm_empty(void)
 
 void test_hmm_corrupted1(void)
 {
-    FILE *fd = fopen("/Users/horta/data/corrupted1.hmm", "r");
+    FILE *fd = fopen(ASSETS "/corrupted1.hmm", "r");
     NOTNULL(fd);
 
     HMR_DECLARE(hmr);
@@ -116,7 +116,7 @@ void test_hmm_corrupted1(void)
 
 void test_hmm_corrupted2(void)
 {
-    FILE *fd = fopen("/Users/horta/data/corrupted2.hmm", "r");
+    FILE *fd = fopen(ASSETS "/corrupted2.hmm", "r");
     NOTNULL(fd);
     unsigned prof_size[] = {40};
 
@@ -149,7 +149,7 @@ void test_hmm_corrupted2(void)
 
 void test_hmm_corrupted3(void)
 {
-    FILE *fd = fopen("/Users/horta/data/corrupted3.hmm", "r");
+    FILE *fd = fopen(ASSETS "/corrupted3.hmm", "r");
     NOTNULL(fd);
     unsigned prof_size[] = {40};
 

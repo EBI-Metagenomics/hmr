@@ -12,6 +12,18 @@ file(ARCHIVE_EXTRACT INPUT ${ASSETS}/three-profs.hmm.7z DESTINATION ${ASSETS})
 file(DOWNLOAD ${URL}/empty.hmm ${ASSETS}/empty.hmm
      EXPECTED_HASH SHA1=da39a3ee5e6b4b0d3255bfef95601890afd80709)
 
+file(DOWNLOAD ${URL}/corrupted1.hmm.7z ${ASSETS}/corrupted1.hmm.7z
+     EXPECTED_HASH SHA1=a4518e30c4fed4fd882534a84f7e603998282346)
+file(ARCHIVE_EXTRACT INPUT ${ASSETS}/corrupted1.hmm.7z DESTINATION ${ASSETS})
+
+file(DOWNLOAD ${URL}/corrupted2.hmm.7z ${ASSETS}/corrupted2.hmm.7z
+     EXPECTED_HASH SHA1=23f27383633d61ca640fce532488281ccee9b7d9)
+file(ARCHIVE_EXTRACT INPUT ${ASSETS}/corrupted2.hmm.7z DESTINATION ${ASSETS})
+
+file(DOWNLOAD ${URL}/corrupted3.hmm.7z ${ASSETS}/corrupted3.hmm.7z
+     EXPECTED_HASH SHA1=4a8dcc07b5b070acd463343e9814412e998cb0ed)
+file(ARCHIVE_EXTRACT INPUT ${ASSETS}/corrupted3.hmm.7z DESTINATION ${ASSETS})
+
 function(hmr_add_test name srcs)
   add_executable(${name} ${srcs})
   add_dependencies(all_tests ${name})
