@@ -4,18 +4,18 @@
 #include "hmr/rc.h"
 #include <stdio.h>
 
-enum fsm_state;
+enum hmr_fsm_state;
 struct hmr;
 struct hmr_aux;
 struct hmr_prof;
-struct token;
+struct hmr_token;
 
 enum hmr_rc prof_next_node(struct hmr_prof *prof, FILE *restrict fd,
-                           struct hmr_aux *aux, enum fsm_state *state,
-                           struct token *tok);
+                           struct hmr_aux *aux, enum hmr_fsm_state *state,
+                           struct hmr_token *tok);
 
 enum hmr_rc prof_next_prof(struct hmr_prof *prof, FILE *restrict fd,
-                           struct hmr_aux *aux, enum fsm_state *state,
-                           struct token *tok);
+                           struct hmr_aux *aux, enum hmr_fsm_state *state,
+                           struct hmr_token *tok);
 
 #endif

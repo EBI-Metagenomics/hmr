@@ -25,19 +25,19 @@ void test_hmm_3profs(void)
     NOTNULL(fd);
     unsigned symbol_size = 20;
 
-    struct hmr *hmr = hmr_new();
+    HMR_DECLARE(hmr);
 
-    hmr_open(hmr, fd);
+    EQ(hmr_open(&hmr, fd), HMR_SUCCESS);
 
     HMR_PROF_DECLARE(prof);
 
     unsigned prof_idx = 0;
     enum hmr_rc rc = HMR_SUCCESS;
-    while (!(rc = hmr_next_prof(hmr, &prof)))
+    while (!(rc = hmr_next_prof(&hmr, &prof)))
     {
         EQ(prof.symbols_size, symbol_size);
         unsigned node_idx = 0;
-        while (!(rc = hmr_next_node(hmr, &prof)))
+        while (!(rc = hmr_next_node(&hmr, &prof)))
         {
             EQ(prof.node.idx, node_idx);
             check_prof[prof_idx](&prof);
@@ -46,7 +46,7 @@ void test_hmm_3profs(void)
         prof_idx++;
     }
 
-    hmr_close(hmr);
+    hmr_close(&hmr);
 
     fclose(fd);
 }

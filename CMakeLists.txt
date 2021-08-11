@@ -15,7 +15,7 @@ if("${isSystemDir}" STREQUAL "-1")
   set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 endif()
 
-add_library(hmr src/fsm.c src/token.c src/hmr.c src/prof.c src/node.c)
+add_library(hmr src/fsm.c src/token.c src/hmr.c src/prof.c src/node.c src/aux.c)
 add_library(HMR::hmr ALIAS hmr)
 
 include(GenerateExportHeader)

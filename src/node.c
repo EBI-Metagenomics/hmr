@@ -1,7 +1,6 @@
 #include "node.h"
 #include "hmr/node.h"
 #include <math.h>
-#include <stdlib.h>
 
 void hmr_node_dump(struct hmr_node const *node, FILE *fd)
 {

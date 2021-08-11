@@ -1,5 +1,5 @@
-#ifndef HMR_H
-#define HMR_H
+#ifndef AUX_H
+#define AUX_H
 
 struct hmr_aux;
 

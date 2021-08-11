@@ -1,25 +1,22 @@
 #include "token.h"
+#include "hmr/token.h"
 #include <string.h>
 
 #define DELIM " \t\r"
 
-#define ARRLEN(x) (sizeof(x) / sizeof(x[0]))
-#define STRLEN(x) (ARRLEN(x) - 1)
-#define TOKEN(t, s) (t->len == STRLEN(s) && !strncmp(t->line.begin, s, t->len))
-
-static void add_space_before_newline(char line[TOKEN_LINE_MAX]);
-static bool next_line(FILE *restrict fd, char line[TOKEN_LINE_MAX],
+static void add_space_before_newline(char line[HMR_TOKEN_LINE_MAX]);
+static bool next_line(FILE *restrict fd, char line[HMR_TOKEN_LINE_MAX],
                       enum hmr_rc *rc);
 
-void token_init(struct token *tok)
+void token_init(struct hmr_token *tok)
 {
-    tok->id = TOKEN_NEWLINE;
-    memset(tok->line, '\0', TOKEN_LINE_MAX);
+    tok->id = HMR_TOKEN_NEWLINE;
+    memset(tok->line, '\0', HMR_TOKEN_LINE_MAX);
     tok->value = tok->line;
     tok->rc = HMR_SUCCESS;
 }
 
-bool token_next(FILE *restrict fd, struct token *tok)
+bool token_next(FILE *restrict fd, struct hmr_token *tok)
 {
     tok->rc = HMR_SUCCESS;
 
@@ -37,25 +34,25 @@ bool token_next(FILE *restrict fd, struct token *tok)
     }
 
     if (!strcmp(tok->value, "\n"))
-        tok->id = TOKEN_NEWLINE;
+        tok->id = HMR_TOKEN_NEWLINE;
     else if (!strcmp(tok->value, "//"))
-        tok->id = TOKEN_SLASH;
+        tok->id = HMR_TOKEN_SLASH;
     else if (!strcmp(tok->value, "HMM"))
-        tok->id = TOKEN_HMM;
+        tok->id = HMR_TOKEN_HMM;
     else if (!strcmp(tok->value, "COMPO"))
-        tok->id = TOKEN_COMPO;
+        tok->id = HMR_TOKEN_COMPO;
     else
-        tok->id = TOKEN_WORD;
+        tok->id = HMR_TOKEN_WORD;
 
     return true;
 }
 
-static bool next_line(FILE *restrict fd, char line[TOKEN_LINE_MAX],
+static bool next_line(FILE *restrict fd, char line[HMR_TOKEN_LINE_MAX],
                       enum hmr_rc *rc)
 {
     *rc = HMR_SUCCESS;
 
-    if (!fgets(line, TOKEN_LINE_MAX - 1, fd))
+    if (!fgets(line, HMR_TOKEN_LINE_MAX - 1, fd))
     {
         if (feof(fd))
             return false;
@@ -70,7 +67,7 @@ static bool next_line(FILE *restrict fd, char line[TOKEN_LINE_MAX],
     return true;
 }
 
-static void add_space_before_newline(char line[TOKEN_LINE_MAX])
+static void add_space_before_newline(char line[HMR_TOKEN_LINE_MAX])
 {
     unsigned n = (unsigned)strlen(line);
     if (n > 0)
