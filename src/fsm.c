@@ -156,7 +156,7 @@ static void header(struct hmr_token const *tok, enum hmr_fsm_state state,
             aux->prof.end = aux->prof.begin + HMR_HEADER_MAX;
         }
         aux->prof.pos = memccpy(aux->prof.pos - 1, tok->value, '\0',
-                                aux->prof.end - aux->prof.pos);
+                                (unsigned long)(aux->prof.end - aux->prof.pos));
     }
     else if (tok->id == HMR_TOKEN_NEWLINE)
     {
@@ -217,7 +217,7 @@ static void field_content(struct hmr_token const *tok, enum hmr_fsm_state state,
             aux->prof.pos++;
         }
         aux->prof.pos = memccpy(aux->prof.pos - 1, tok->value, '\0',
-                                aux->prof.end - aux->prof.pos);
+                                (unsigned long)(aux->prof.end - aux->prof.pos));
     }
     else if (tok->id == HMR_TOKEN_NEWLINE)
     {
