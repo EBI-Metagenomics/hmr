@@ -2,6 +2,7 @@
 #include "hope/hope.h"
 
 void test_hmm_3profs(void);
+void test_hmm_empty(void);
 
 void check_3profs0(struct hmr_prof *prof);
 void check_3profs1(struct hmr_prof *prof);
@@ -16,12 +17,13 @@ void (*check_prof[3])(struct hmr_prof *prof) = {
 int main(void)
 {
     test_hmm_3profs();
+    test_hmm_empty();
     return hope_status();
 }
 
 void test_hmm_3profs(void)
 {
-    FILE *fd = fopen(THREE_PROFS_FILEPATH, "r");
+    FILE *fd = fopen(ASSETS "/three-profs.hmm", "r");
     NOTNULL(fd);
     unsigned symbol_size = 20;
 
@@ -36,6 +38,36 @@ void test_hmm_3profs(void)
     while (!(rc = hmr_next_prof(&hmr, &prof)))
     {
         EQ(prof.symbols_size, symbol_size);
+        unsigned node_idx = 0;
+        while (!(rc = hmr_next_node(&hmr, &prof)))
+        {
+            EQ(prof.node.idx, node_idx);
+            check_prof[prof_idx](&prof);
+            node_idx++;
+        }
+        prof_idx++;
+    }
+
+    hmr_close(&hmr);
+
+    fclose(fd);
+}
+
+void test_hmm_empty(void)
+{
+    FILE *fd = fopen(ASSETS "/empty.hmm", "r");
+    NOTNULL(fd);
+
+    HMR_DECLARE(hmr);
+
+    EQ(hmr_open(&hmr, fd), HMR_SUCCESS);
+
+    HMR_PROF_DECLARE(prof);
+
+    unsigned prof_idx = 0;
+    enum hmr_rc rc = HMR_SUCCESS;
+    while (!(rc = hmr_next_prof(&hmr, &prof)))
+    {
         unsigned node_idx = 0;
         while (!(rc = hmr_next_node(&hmr, &prof)))
         {

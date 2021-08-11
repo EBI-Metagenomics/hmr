@@ -9,7 +9,7 @@ struct hmr_token;
 
 static inline void fsm_init(enum hmr_fsm_state *state)
 {
-    *state = HMR_FSM_HEADER;
+    *state = HMR_FSM_BEGIN;
 }
 
 enum hmr_fsm_state fsm_next(enum hmr_fsm_state state,

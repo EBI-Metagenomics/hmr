@@ -1,15 +1,16 @@
 add_custom_target(all_tests)
 find_package(hope REQUIRED)
 
-include(FetchContent)
-FetchContent_Declare(
-  three_profs
-  URL https://hmmer-reader.s3.eu-west-2.amazonaws.com/three-profs.hmm.7z
-  URL_HASH SHA1=099404b43b5c0416061d8e911af785d6fd2ee6f3)
+set(ASSETS ${CMAKE_CURRENT_BINARY_DIR}/assets)
+file(MAKE_DIRECTORY ${ASSETS})
+set(URL "https://hmmer-reader.s3.eu-west-2.amazonaws.com")
 
-FetchContent_MakeAvailable(three_profs)
-FetchContent_GetProperties(three_profs SOURCE_DIR srcdir)
-set(THREE_PROFS_FILEPATH ${srcdir}/three-profs.hmm)
+file(DOWNLOAD ${URL}/three-profs.hmm.7z ${ASSETS}/three-profs.hmm.7z
+     EXPECTED_HASH SHA1=099404b43b5c0416061d8e911af785d6fd2ee6f3)
+file(ARCHIVE_EXTRACT INPUT ${ASSETS}/three-profs.hmm.7z DESTINATION ${ASSETS})
+
+file(DOWNLOAD ${URL}/empty.hmm ${ASSETS}/empty.hmm
+     EXPECTED_HASH SHA1=da39a3ee5e6b4b0d3255bfef95601890afd80709)
 
 function(hmr_add_test name srcs)
   add_executable(${name} ${srcs})
@@ -25,9 +26,8 @@ function(hmr_add_test name srcs)
     TARGET ${name}
     PRE_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory ${TMPDIR})
+  target_compile_definitions(${name} PUBLIC "ASSETS=\"${ASSETS}\"")
   target_compile_definitions(${name} PUBLIC "TMPDIR=\"${TMPDIR}\"")
-  target_compile_definitions(
-    ${name} PUBLIC "THREE_PROFS_FILEPATH=\"${THREE_PROFS_FILEPATH}\"")
 endfunction()
 
 hmr_add_test(read_hmm read_hmm.c)
