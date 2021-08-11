@@ -5,32 +5,38 @@
 #define DELIM " \t\r"
 
 static void add_space_before_newline(char line[HMR_TOKEN_LINE_MAX]);
-static bool next_line(FILE *restrict fd, char line[HMR_TOKEN_LINE_MAX],
-                      enum hmr_rc *rc);
+static enum hmr_rc next_line(FILE *restrict fd, char line[HMR_TOKEN_LINE_MAX]);
 
 void token_init(struct hmr_token *tok)
 {
     tok->id = HMR_TOKEN_NEWLINE;
     memset(tok->line, '\0', HMR_TOKEN_LINE_MAX);
+    tok->line_number = 0;
     tok->value = tok->line;
-    tok->rc = HMR_SUCCESS;
 }
 
-bool token_next(FILE *restrict fd, struct hmr_token *tok)
+enum hmr_rc token_next(FILE *restrict fd, struct hmr_token *tok)
 {
-    tok->rc = HMR_SUCCESS;
+    enum hmr_rc rc = HMR_SUCCESS;
 
     if (!(tok->value = strtok(NULL, DELIM)))
     {
-        if (!next_line(fd, tok->line, &tok->rc))
-            return false;
+        if ((rc = next_line(fd, tok->line)))
+        {
+            if (rc == HMR_ENDFILE)
+            {
+                tok->value = NULL;
+                tok->id = HMR_TOKEN_EOF;
+                tok->line[0] = '\0';
+                return HMR_SUCCESS;
+            }
+            return HMR_IOERROR;
+        }
         tok->value = strtok(tok->line, DELIM);
+        tok->line_number++;
 
         if (!tok->value)
-        {
-            tok->rc = HMR_PARSEERROR;
-            return false;
-        }
+            return HMR_PARSEERROR;
     }
 
     if (!strcmp(tok->value, "\n"))
@@ -44,27 +50,23 @@ bool token_next(FILE *restrict fd, struct hmr_token *tok)
     else
         tok->id = HMR_TOKEN_WORD;
 
-    return true;
+    return HMR_SUCCESS;
 }
 
-static bool next_line(FILE *restrict fd, char line[HMR_TOKEN_LINE_MAX],
-                      enum hmr_rc *rc)
+static enum hmr_rc next_line(FILE *restrict fd, char line[HMR_TOKEN_LINE_MAX])
 {
-    *rc = HMR_SUCCESS;
-
     if (!fgets(line, HMR_TOKEN_LINE_MAX - 1, fd))
     {
         if (feof(fd))
-            return false;
+            return HMR_ENDFILE;
 
         perror("fgets() failed");
         clearerr(fd);
-        *rc = HMR_IOERROR;
-        return false;
+        return HMR_IOERROR;
     }
 
     add_space_before_newline(line);
-    return true;
+    return HMR_SUCCESS;
 }
 
 static void add_space_before_newline(char line[HMR_TOKEN_LINE_MAX])

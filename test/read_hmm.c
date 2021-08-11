@@ -3,6 +3,8 @@
 
 void test_hmm_3profs(void);
 void test_hmm_empty(void);
+void test_hmm_corrupted1(void);
+void test_hmm_corrupted2(void);
 
 void check_3profs0(struct hmr_prof *prof);
 void check_3profs1(struct hmr_prof *prof);
@@ -18,6 +20,8 @@ int main(void)
 {
     test_hmm_3profs();
     test_hmm_empty();
+    test_hmm_corrupted1();
+    test_hmm_corrupted2();
     return hope_status();
 }
 
@@ -26,6 +30,7 @@ void test_hmm_3profs(void)
     FILE *fd = fopen(ASSETS "/three-profs.hmm", "r");
     NOTNULL(fd);
     unsigned symbol_size = 20;
+    unsigned prof_size[] = {40, 235, 449};
 
     HMR_DECLARE(hmr);
 
@@ -45,8 +50,11 @@ void test_hmm_3profs(void)
             check_prof[prof_idx](&prof);
             node_idx++;
         }
+        EQ(prof.node.idx, prof_size[prof_idx]);
+        EQ(hmr_prof_length(&prof), prof_size[prof_idx]);
         prof_idx++;
     }
+    EQ(prof_idx, 3);
 
     hmr_close(&hmr);
 
@@ -65,6 +73,72 @@ void test_hmm_empty(void)
     HMR_PROF_DECLARE(prof);
 
     EQ(hmr_next_prof(&hmr, &prof), HMR_ENDFILE);
+    EQ(hmr_next_prof(&hmr, &prof), HMR_RUNTIMEERROR);
+
+    hmr_close(&hmr);
+
+    fclose(fd);
+}
+
+void test_hmm_corrupted1(void)
+{
+    FILE *fd = fopen("/Users/horta/data/corrupted1.hmm", "r");
+    NOTNULL(fd);
+
+    HMR_DECLARE(hmr);
+
+    EQ(hmr_open(&hmr, fd), HMR_SUCCESS);
+
+    HMR_PROF_DECLARE(prof);
+
+    unsigned prof_idx = 0;
+    enum hmr_rc rc = HMR_SUCCESS;
+    while (!(rc = hmr_next_prof(&hmr, &prof)))
+    {
+        unsigned node_idx = 0;
+        while (!(rc = hmr_next_node(&hmr, &prof)))
+        {
+            node_idx++;
+        }
+        if (prof_idx == 2 && node_idx == 5)
+            EQ(rc, HMR_PARSEERROR);
+        prof_idx++;
+    }
+    EQ(prof_idx, 3);
+    EQ(rc, HMR_RUNTIMEERROR);
+
+    hmr_close(&hmr);
+
+    fclose(fd);
+}
+
+void test_hmm_corrupted2(void)
+{
+    FILE *fd = fopen("/Users/horta/data/corrupted2.hmm", "r");
+    NOTNULL(fd);
+    unsigned prof_size[] = {40};
+
+    HMR_DECLARE(hmr);
+
+    EQ(hmr_open(&hmr, fd), HMR_SUCCESS);
+
+    HMR_PROF_DECLARE(prof);
+
+    unsigned prof_idx = 0;
+    enum hmr_rc rc = HMR_SUCCESS;
+    while (!(rc = hmr_next_prof(&hmr, &prof)))
+    {
+        unsigned node_idx = 0;
+        while (!(rc = hmr_next_node(&hmr, &prof)))
+        {
+            node_idx++;
+        }
+        EQ(prof.node.idx, prof_size[prof_idx]);
+        EQ(hmr_prof_length(&prof), prof_size[prof_idx]);
+        prof_idx++;
+    }
+    EQ(prof_idx, 1);
+    EQ(rc, HMR_PARSEERROR);
 
     hmr_close(&hmr);
 

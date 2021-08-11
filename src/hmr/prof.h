@@ -17,6 +17,7 @@ struct hmr_prof
         char leng[HMR_LENG_MAX];
         char alph[HMR_ALPH_MAX];
     } meta;
+    char buff[HMR_BUFF_MAX];
     unsigned symbols_size;
     char symbols[HMR_SYMBOLS_MAX];
 
@@ -30,5 +31,6 @@ struct hmr_prof
 HMR_API void hmr_prof_dump(struct hmr_prof const *prof, FILE *fd);
 HMR_API void hmr_prof_init(struct hmr_prof *prof);
 HMR_API enum hmr_rc hmr_prof_read(struct hmr_prof *prof);
+HMR_API unsigned hmr_prof_length(struct hmr_prof const *prof);
 
 #endif

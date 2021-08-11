@@ -49,67 +49,79 @@ static enum hmr_rc trans(struct hmr_token const *tok, enum hmr_fsm_state state,
 
 static enum hmr_rc to_double(char const *str, double *val);
 
-static struct trans const transition[][5] = {
+static struct trans const transition[][6] = {
     [HMR_FSM_BEGIN] = {[HMR_TOKEN_WORD] = {HMR_FSM_HEADER, &header},
                        [HMR_TOKEN_NEWLINE] = {HMR_FSM_ERROR, &nop},
                        [HMR_TOKEN_HMM] = {HMR_FSM_ERROR, &nop},
                        [HMR_TOKEN_COMPO] = {HMR_FSM_ERROR, &nop},
-                       [HMR_TOKEN_SLASH] = {HMR_FSM_ERROR, &nop}},
+                       [HMR_TOKEN_SLASH] = {HMR_FSM_ERROR, &nop},
+                       [HMR_TOKEN_EOF] = {HMR_FSM_END, &nop}},
     [HMR_FSM_HEADER] = {[HMR_TOKEN_WORD] = {HMR_FSM_HEADER, &header},
                         [HMR_TOKEN_NEWLINE] = {HMR_FSM_NAME, &header},
                         [HMR_TOKEN_HMM] = {HMR_FSM_ERROR, &nop},
                         [HMR_TOKEN_COMPO] = {HMR_FSM_ERROR, &nop},
-                        [HMR_TOKEN_SLASH] = {HMR_FSM_ERROR, &nop}},
+                        [HMR_TOKEN_SLASH] = {HMR_FSM_ERROR, &nop},
+                        [HMR_TOKEN_EOF] = {HMR_FSM_ERROR, &nop}},
     [HMR_FSM_NAME] = {[HMR_TOKEN_WORD] = {HMR_FSM_CONTENT, &field_name},
                       [HMR_TOKEN_NEWLINE] = {HMR_FSM_ERROR, &nop},
                       [HMR_TOKEN_HMM] = {HMR_FSM_SYMBOL, &hmm},
                       [HMR_TOKEN_COMPO] = {HMR_FSM_ERROR, &nop},
-                      [HMR_TOKEN_SLASH] = {HMR_FSM_ERROR, &nop}},
+                      [HMR_TOKEN_SLASH] = {HMR_FSM_ERROR, &nop},
+                      [HMR_TOKEN_EOF] = {HMR_FSM_ERROR, &nop}},
     [HMR_FSM_CONTENT] = {[HMR_TOKEN_WORD] = {HMR_FSM_CONTENT, &field_content},
                          [HMR_TOKEN_NEWLINE] = {HMR_FSM_NAME, &field_content},
                          [HMR_TOKEN_HMM] = {HMR_FSM_CONTENT, &nop},
                          [HMR_TOKEN_COMPO] = {HMR_FSM_ERROR, &nop},
-                         [HMR_TOKEN_SLASH] = {HMR_FSM_ERROR, &nop}},
+                         [HMR_TOKEN_SLASH] = {HMR_FSM_ERROR, &nop},
+                         [HMR_TOKEN_EOF] = {HMR_FSM_ERROR, &nop}},
     [HMR_FSM_SYMBOL] = {[HMR_TOKEN_WORD] = {HMR_FSM_SYMBOL, &symbol},
                         [HMR_TOKEN_NEWLINE] = {HMR_FSM_ARROW, &symbol},
                         [HMR_TOKEN_HMM] = {HMR_FSM_ERROR, &nop},
                         [HMR_TOKEN_COMPO] = {HMR_FSM_ERROR, &nop},
-                        [HMR_TOKEN_SLASH] = {HMR_FSM_ERROR, &nop}},
+                        [HMR_TOKEN_SLASH] = {HMR_FSM_ERROR, &nop},
+                        [HMR_TOKEN_EOF] = {HMR_FSM_ERROR, &nop}},
     [HMR_FSM_ARROW] = {[HMR_TOKEN_WORD] = {HMR_FSM_ARROW, &nop},
                        [HMR_TOKEN_NEWLINE] = {HMR_FSM_PAUSE, &nop},
                        [HMR_TOKEN_HMM] = {HMR_FSM_ERROR, &nop},
                        [HMR_TOKEN_COMPO] = {HMR_FSM_ERROR, &nop},
-                       [HMR_TOKEN_SLASH] = {HMR_FSM_ERROR, &nop}},
+                       [HMR_TOKEN_SLASH] = {HMR_FSM_ERROR, &nop},
+                       [HMR_TOKEN_EOF] = {HMR_FSM_ERROR, &nop}},
     [HMR_FSM_COMPO] = {[HMR_TOKEN_WORD] = {HMR_FSM_COMPO, &compo},
                        [HMR_TOKEN_NEWLINE] = {HMR_FSM_INSERT, &compo},
                        [HMR_TOKEN_HMM] = {HMR_FSM_ERROR, &nop},
                        [HMR_TOKEN_COMPO] = {HMR_FSM_ERROR, &nop},
-                       [HMR_TOKEN_SLASH] = {HMR_FSM_ERROR, &nop}},
+                       [HMR_TOKEN_SLASH] = {HMR_FSM_ERROR, &nop},
+                       [HMR_TOKEN_EOF] = {HMR_FSM_ERROR, &nop}},
     [HMR_FSM_INSERT] = {[HMR_TOKEN_WORD] = {HMR_FSM_INSERT, &insert},
                         [HMR_TOKEN_NEWLINE] = {HMR_FSM_TRANS, &insert},
                         [HMR_TOKEN_HMM] = {HMR_FSM_ERROR, &nop},
                         [HMR_TOKEN_COMPO] = {HMR_FSM_ERROR, &nop},
-                        [HMR_TOKEN_SLASH] = {HMR_FSM_ERROR, &nop}},
+                        [HMR_TOKEN_SLASH] = {HMR_FSM_ERROR, &nop},
+                        [HMR_TOKEN_EOF] = {HMR_FSM_ERROR, &nop}},
     [HMR_FSM_MATCH] = {[HMR_TOKEN_WORD] = {HMR_FSM_MATCH, &match},
                        [HMR_TOKEN_NEWLINE] = {HMR_FSM_INSERT, &match},
                        [HMR_TOKEN_HMM] = {HMR_FSM_ERROR, &nop},
                        [HMR_TOKEN_COMPO] = {HMR_FSM_ERROR, &nop},
-                       [HMR_TOKEN_SLASH] = {HMR_FSM_ERROR, &nop}},
+                       [HMR_TOKEN_SLASH] = {HMR_FSM_ERROR, &nop},
+                       [HMR_TOKEN_EOF] = {HMR_FSM_ERROR, &nop}},
     [HMR_FSM_TRANS] = {[HMR_TOKEN_WORD] = {HMR_FSM_TRANS, &trans},
                        [HMR_TOKEN_NEWLINE] = {HMR_FSM_PAUSE, &trans},
                        [HMR_TOKEN_HMM] = {HMR_FSM_ERROR, &nop},
                        [HMR_TOKEN_COMPO] = {HMR_FSM_ERROR, &nop},
-                       [HMR_TOKEN_SLASH] = {HMR_FSM_ERROR, &nop}},
+                       [HMR_TOKEN_SLASH] = {HMR_FSM_ERROR, &nop},
+                       [HMR_TOKEN_EOF] = {HMR_FSM_ERROR, &nop}},
     [HMR_FSM_PAUSE] = {[HMR_TOKEN_WORD] = {HMR_FSM_MATCH, &match},
                        [HMR_TOKEN_NEWLINE] = {HMR_FSM_ERROR, &nop},
                        [HMR_TOKEN_HMM] = {HMR_FSM_ERROR, &nop},
                        [HMR_TOKEN_COMPO] = {HMR_FSM_COMPO, &compo},
-                       [HMR_TOKEN_SLASH] = {HMR_FSM_SLASHED, &nop}},
+                       [HMR_TOKEN_SLASH] = {HMR_FSM_SLASHED, &nop},
+                       [HMR_TOKEN_EOF] = {HMR_FSM_ERROR, &nop}},
     [HMR_FSM_SLASHED] = {[HMR_TOKEN_WORD] = {HMR_FSM_ERROR, &nop},
                          [HMR_TOKEN_NEWLINE] = {HMR_FSM_BEGIN, &nop},
                          [HMR_TOKEN_HMM] = {HMR_FSM_ERROR, &nop},
                          [HMR_TOKEN_COMPO] = {HMR_FSM_ERROR, &nop},
-                         [HMR_TOKEN_SLASH] = {HMR_FSM_ERROR, &nop}},
+                         [HMR_TOKEN_SLASH] = {HMR_FSM_ERROR, &nop},
+                         [HMR_TOKEN_EOF] = {HMR_FSM_ERROR, &nop}},
 };
 
 static char state_name[][10] = {
@@ -119,7 +131,7 @@ static char state_name[][10] = {
     [HMR_FSM_COMPO] = "COMPO",   [HMR_FSM_INSERT] = "INSERT",
     [HMR_FSM_MATCH] = "MATCH",   [HMR_FSM_TRANS] = "TRANS",
     [HMR_FSM_PAUSE] = "PAUSE",   [HMR_FSM_SLASHED] = "SLASHED",
-    [HMR_FSM_ERROR] = "ERROR",
+    [HMR_FSM_END] = "END",       [HMR_FSM_ERROR] = "ERROR",
 };
 
 enum hmr_fsm_state fsm_next(enum hmr_fsm_state state,
@@ -200,10 +212,8 @@ static enum hmr_rc field_name(struct hmr_token const *tok,
     }
     else
     {
-        aux->prof.begin = NULL;
-        aux->prof.pos = NULL;
-        aux->prof.end = NULL;
-        return HMR_SUCCESS;
+        aux->prof.begin = prof->buff;
+        aux->prof.end = aux->prof.begin + HMR_BUFF_MAX;
     }
     aux->prof.pos = aux->prof.begin + 1;
     return HMR_SUCCESS;
@@ -213,9 +223,6 @@ static enum hmr_rc field_content(struct hmr_token const *tok,
                                  enum hmr_fsm_state state, struct hmr_aux *aux,
                                  struct hmr_prof *prof)
 {
-    if (!aux->prof.begin)
-        return HMR_SUCCESS;
-
     if (tok->id == HMR_TOKEN_WORD || tok->id == HMR_TOKEN_HMM ||
         tok->id == HMR_TOKEN_COMPO)
     {
@@ -229,6 +236,8 @@ static enum hmr_rc field_content(struct hmr_token const *tok,
     }
     else if (tok->id == HMR_TOKEN_NEWLINE)
     {
+        if (aux->prof.pos == aux->prof.begin + 1)
+            return HMR_PARSEERROR;
         *(aux->prof.pos - 1) = '\0';
         aux_reset(aux);
     }

@@ -15,6 +15,7 @@ enum hmr_fsm_state
     HMR_FSM_TRANS,
     HMR_FSM_PAUSE,
     HMR_FSM_SLASHED,
+    HMR_FSM_END,
     HMR_FSM_ERROR
 };
 

@@ -5,6 +5,7 @@ enum hmr_rc
 {
     HMR_SUCCESS = 0,
     HMR_ENDPROF,
+    HMR_ENDNODE,
     HMR_ENDFILE,
     HMR_FAILURE,
     HMR_OUTOFMEM,

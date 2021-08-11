@@ -10,6 +10,7 @@
 #define HMR_DESC_MAX 128
 #define HMR_LENG_MAX 8
 #define HMR_ALPH_MAX 12
+#define HMR_BUFF_MAX 128
 #define HMR_SYMBOLS_MAX 32
 #define HMR_TRANS_SIZE 7
 #define HMR_MATCH_EXCESS_SIZE 5
