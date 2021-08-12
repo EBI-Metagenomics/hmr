@@ -67,7 +67,10 @@ enum hmr_rc prof_next_node(struct hmr_prof *prof, FILE *restrict fd,
         if (*state == HMR_FSM_BEGIN)
         {
             if (hmr_prof_length(prof) != prof->node.idx)
+            {
+                error(tok, "profile length mismatch");
                 return HMR_PARSEERROR;
+            }
             return HMR_ENDNODE;
         }
 
@@ -114,28 +117,3 @@ unsigned hmr_prof_length(struct hmr_prof const *prof)
         return 0;
     return (unsigned)v;
 }
-
-#if 0
-static enum hmr_rc resume_prof(struct hmr_prof *prof, FILE *restrict fd,
-                               struct hmr_aux *aux, enum hmr_fsm_state *state,
-                               struct hmr_token *tok)
-{
-    enum hmr_rc rc = HMR_SUCCESS;
-
-    BUG(*state != HMR_FSM_PAUSE);
-    if (!(rc = token_next(fd, tok)))
-        return rc;
-
-    *state = fsm_next(*state, tok, aux, prof);
-    if (*state != HMR_FSM_SLASHED)
-        return HMR_PARSEERROR;
-
-    if (!(rc = token_next(fd, tok)))
-        return rc;
-
-    *state = fsm_next(*state, tok, aux, prof);
-    if (*state != HMR_FSM_BEGIN)
-        return HMR_PARSEERROR;
-    return HMR_SUCCESS;
-}
-#endif

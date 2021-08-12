@@ -7,6 +7,7 @@ void test_hmm_corrupted1(void);
 void test_hmm_corrupted2(void);
 void test_hmm_corrupted3(void);
 void test_hmm_corrupted4(void);
+void test_hmm_corrupted5(void);
 
 void check_3profs0(struct hmr_prof *prof);
 void check_3profs1(struct hmr_prof *prof);
@@ -26,6 +27,7 @@ int main(void)
     test_hmm_corrupted2();
     test_hmm_corrupted3();
     test_hmm_corrupted4();
+    test_hmm_corrupted5();
     return hope_status();
 }
 
@@ -102,12 +104,13 @@ void test_hmm_corrupted1(void)
         unsigned node_idx = 0;
         while (!(rc = hmr_next_node(&hmr, &prof)))
         {
-            if (prof_idx == 2 && node_idx == 5)
-                printf("");
             node_idx++;
         }
         if (prof_idx == 2 && node_idx == 6)
+        {
             EQ(rc, HMR_PARSEERROR);
+            EQ(hmr.error, "Parse error: unexpected end-of-file: line 563");
+        }
         if (prof_idx == 2)
             EQ(node_idx, 6);
         prof_idx++;
@@ -147,6 +150,7 @@ void test_hmm_corrupted2(void)
     }
     EQ(prof_idx, 1);
     EQ(rc, HMR_PARSEERROR);
+    EQ(hmr.error, "Parse error: unexpected end-of-node: line 153");
 
     hmr_close(&hmr);
 
@@ -180,6 +184,7 @@ void test_hmm_corrupted3(void)
     }
     EQ(prof_idx, 0);
     EQ(rc, HMR_PARSEERROR);
+    EQ(hmr.error, "Parse error: unexpected end-of-node: line 21");
 
     hmr_close(&hmr);
 
@@ -207,7 +212,7 @@ void test_hmm_corrupted4(void)
             node_idx++;
         }
         EQ(rc, HMR_PARSEERROR);
-        printf("%s\n", hmr.error);
+        EQ(hmr.error, "Parse error: profile length mismatch: line 33");
         EQ(node_idx, 3);
         EQ(prof.node.idx, 2);
         EQ(hmr_prof_length(&prof), 40);
@@ -215,6 +220,29 @@ void test_hmm_corrupted4(void)
     }
     EQ(prof_idx, 1);
     EQ(rc, HMR_ENDFILE);
+
+    hmr_close(&hmr);
+
+    fclose(fd);
+}
+
+void test_hmm_corrupted5(void)
+{
+    FILE *fd = fopen("/Users/horta/data/corrupted5.hmm", "r");
+    NOTNULL(fd);
+
+    HMR_DECLARE(hmr);
+
+    EQ(hmr_open(&hmr, fd), HMR_SUCCESS);
+
+    HMR_PROF_DECLARE(prof, &hmr);
+
+    enum hmr_rc rc = HMR_SUCCESS;
+    rc = hmr_next_prof(&hmr, &prof);
+    EQ(rc, HMR_PARSEERROR);
+    EQ(hmr.error, "Parse error: unexpected end-of-node: line 4");
+    rc = hmr_next_node(&hmr, &prof);
+    EQ(rc, HMR_RUNTIMEERROR);
 
     hmr_close(&hmr);
 
