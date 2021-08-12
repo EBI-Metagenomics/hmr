@@ -12,6 +12,7 @@ void token_init(struct hmr_token *tok)
     tok->id = HMR_TOKEN_NEWLINE;
     memset(tok->line, '\0', HMR_TOKEN_LINE_MAX);
     tok->line_number = 0;
+    tok->consumed_line = true;
     tok->value = tok->line;
 }
 
@@ -19,7 +20,7 @@ enum hmr_rc token_next(FILE *restrict fd, struct hmr_token *tok)
 {
     enum hmr_rc rc = HMR_SUCCESS;
 
-    if (!(tok->value = strtok(NULL, DELIM)))
+    if (tok->consumed_line)
     {
         if ((rc = next_line(fd, tok->line)))
         {
@@ -38,6 +39,8 @@ enum hmr_rc token_next(FILE *restrict fd, struct hmr_token *tok)
         if (!tok->value)
             return HMR_PARSEERROR;
     }
+    else
+        tok->value = strtok(NULL, DELIM);
 
     if (!strcmp(tok->value, "\n"))
         tok->id = HMR_TOKEN_NEWLINE;
@@ -49,6 +52,8 @@ enum hmr_rc token_next(FILE *restrict fd, struct hmr_token *tok)
         tok->id = HMR_TOKEN_COMPO;
     else
         tok->id = HMR_TOKEN_WORD;
+
+    tok->consumed_line = tok->id == HMR_TOKEN_NEWLINE;
 
     return HMR_SUCCESS;
 }
