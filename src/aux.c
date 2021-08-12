@@ -11,5 +11,4 @@ void aux_init(struct hmr_aux *aux)
     aux->node.begin = NULL;
     aux->node.pos = NULL;
     aux->node.end = NULL;
-    aux->error[0] = '\0';
 }

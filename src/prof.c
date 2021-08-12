@@ -1,7 +1,9 @@
 #include "hmr/prof.h"
 #include "bug.h"
+#include "error.h"
 #include "fsm.h"
 #include "hmr.h"
+#include "hmr/hmr.h"
 #include "hmr/token.h"
 #include "node.h"
 #include "prof.h"
@@ -26,7 +28,12 @@ void hmr_prof_dump(struct hmr_prof const *prof, FILE *fd)
     fprintf(fd, "\n");
 }
 
-void hmr_prof_init(struct hmr_prof *prof)
+void hmr_prof_init(struct hmr_prof *prof, struct hmr *hmr)
+{
+    prof_init(prof, hmr->error);
+}
+
+void prof_init(struct hmr_prof *prof, char *error)
 {
     prof->header[0] = '\0';
     prof->meta.name[0] = '\0';
@@ -36,6 +43,7 @@ void hmr_prof_init(struct hmr_prof *prof)
     prof->meta.alph[0] = '\0';
     prof->symbols_size = 0;
     prof->symbols[0] = '\0';
+    prof->error = error;
     node_init(&prof->node);
 }
 
@@ -75,7 +83,7 @@ enum hmr_rc prof_next_prof(struct hmr_prof *prof, FILE *restrict fd,
     if (*state != HMR_FSM_BEGIN)
         return HMR_RUNTIMEERROR;
 
-    hmr_prof_init(prof);
+    prof_init(prof, tok->error);
     aux_init(aux);
     do
     {
@@ -84,7 +92,10 @@ enum hmr_rc prof_next_prof(struct hmr_prof *prof, FILE *restrict fd,
             return rc;
 
         if ((*state = fsm_next(*state, tok, aux, prof)) == HMR_FSM_ERROR)
+        {
+            error(tok, "unexpected end-of-node");
             return HMR_PARSEERROR;
+        }
 
     } while (*state != HMR_FSM_PAUSE && *state != HMR_FSM_END);
 

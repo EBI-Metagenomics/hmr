@@ -6,6 +6,8 @@
 #include "hmr/rc.h"
 #include <stdio.h>
 
+struct hmr;
+
 struct hmr_prof
 {
     char header[HMR_HEADER_MAX];
@@ -22,14 +24,15 @@ struct hmr_prof
     char symbols[HMR_SYMBOLS_MAX];
 
     struct hmr_node node;
+    char *error;
 };
 
-#define HMR_PROF_DECLARE(name)                                                 \
+#define HMR_PROF_DECLARE(name, hmr)                                            \
     struct hmr_prof name;                                                      \
-    hmr_prof_init(&name)
+    hmr_prof_init(&name, (hmr))
 
 HMR_API void hmr_prof_dump(struct hmr_prof const *prof, FILE *fd);
-HMR_API void hmr_prof_init(struct hmr_prof *prof);
+HMR_API void hmr_prof_init(struct hmr_prof *prof, struct hmr *hmr);
 HMR_API enum hmr_rc hmr_prof_read(struct hmr_prof *prof);
 HMR_API unsigned hmr_prof_length(struct hmr_prof const *prof);
 

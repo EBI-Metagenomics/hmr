@@ -8,12 +8,15 @@
 #include "hmr/token.h"
 #include <stdio.h>
 
+#define HMR_ERROR_SIZE 128
+
 struct hmr
 {
     FILE *restrict fd;
     enum hmr_fsm_state state;
     struct hmr_token tok;
     struct hmr_aux aux;
+    char error[HMR_ERROR_SIZE];
 };
 
 #define HMR_DECLARE(name)                                                      \
@@ -24,6 +27,7 @@ HMR_API void hmr_init(struct hmr *hmr);
 HMR_API enum hmr_rc hmr_open(struct hmr *hmr, FILE *restrict fd);
 HMR_API enum hmr_rc hmr_next_prof(struct hmr *hmr, struct hmr_prof *prof);
 HMR_API enum hmr_rc hmr_next_node(struct hmr *hmr, struct hmr_prof *prof);
+HMR_API void hmr_clear_error(struct hmr *hmr);
 HMR_API void hmr_close(struct hmr *hmr);
 
 #endif

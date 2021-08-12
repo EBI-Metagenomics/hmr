@@ -7,7 +7,8 @@ void hmr_init(struct hmr *hmr)
 {
     hmr->fd = NULL;
     fsm_init(&hmr->state);
-    token_init(&hmr->tok);
+    hmr->error[0] = '\0';
+    token_init(&hmr->tok, hmr->error);
 }
 
 enum hmr_rc hmr_open(struct hmr *hmr, FILE *restrict fd)
@@ -25,5 +26,7 @@ enum hmr_rc hmr_next_node(struct hmr *hmr, struct hmr_prof *prof)
 {
     return prof_next_node(prof, hmr->fd, &hmr->aux, &hmr->state, &hmr->tok);
 }
+
+void hmr_clear_error(struct hmr *hmr) { hmr->error[0] = '\0'; }
 
 void hmr_close(struct hmr *hmr) { hmr->fd = NULL; }

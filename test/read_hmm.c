@@ -6,6 +6,7 @@ void test_hmm_empty(void);
 void test_hmm_corrupted1(void);
 void test_hmm_corrupted2(void);
 void test_hmm_corrupted3(void);
+void test_hmm_corrupted4(void);
 
 void check_3profs0(struct hmr_prof *prof);
 void check_3profs1(struct hmr_prof *prof);
@@ -24,6 +25,7 @@ int main(void)
     test_hmm_corrupted1();
     test_hmm_corrupted2();
     test_hmm_corrupted3();
+    test_hmm_corrupted4();
     return hope_status();
 }
 
@@ -38,7 +40,7 @@ void test_hmm_3profs(void)
 
     EQ(hmr_open(&hmr, fd), HMR_SUCCESS);
 
-    HMR_PROF_DECLARE(prof);
+    HMR_PROF_DECLARE(prof, &hmr);
 
     unsigned prof_idx = 0;
     enum hmr_rc rc = HMR_SUCCESS;
@@ -72,7 +74,7 @@ void test_hmm_empty(void)
 
     EQ(hmr_open(&hmr, fd), HMR_SUCCESS);
 
-    HMR_PROF_DECLARE(prof);
+    HMR_PROF_DECLARE(prof, &hmr);
 
     EQ(hmr_next_prof(&hmr, &prof), HMR_ENDFILE);
     EQ(hmr_next_prof(&hmr, &prof), HMR_RUNTIMEERROR);
@@ -91,7 +93,7 @@ void test_hmm_corrupted1(void)
 
     EQ(hmr_open(&hmr, fd), HMR_SUCCESS);
 
-    HMR_PROF_DECLARE(prof);
+    HMR_PROF_DECLARE(prof, &hmr);
 
     unsigned prof_idx = 0;
     enum hmr_rc rc = HMR_SUCCESS;
@@ -100,10 +102,14 @@ void test_hmm_corrupted1(void)
         unsigned node_idx = 0;
         while (!(rc = hmr_next_node(&hmr, &prof)))
         {
+            if (prof_idx == 2 && node_idx == 5)
+                printf("");
             node_idx++;
         }
-        if (prof_idx == 2 && node_idx == 5)
+        if (prof_idx == 2 && node_idx == 6)
             EQ(rc, HMR_PARSEERROR);
+        if (prof_idx == 2)
+            EQ(node_idx, 6);
         prof_idx++;
     }
     EQ(prof_idx, 3);
@@ -124,7 +130,7 @@ void test_hmm_corrupted2(void)
 
     EQ(hmr_open(&hmr, fd), HMR_SUCCESS);
 
-    HMR_PROF_DECLARE(prof);
+    HMR_PROF_DECLARE(prof, &hmr);
 
     unsigned prof_idx = 0;
     enum hmr_rc rc = HMR_SUCCESS;
@@ -157,7 +163,7 @@ void test_hmm_corrupted3(void)
 
     EQ(hmr_open(&hmr, fd), HMR_SUCCESS);
 
-    HMR_PROF_DECLARE(prof);
+    HMR_PROF_DECLARE(prof, &hmr);
 
     unsigned prof_idx = 0;
     enum hmr_rc rc = HMR_SUCCESS;
@@ -174,6 +180,41 @@ void test_hmm_corrupted3(void)
     }
     EQ(prof_idx, 0);
     EQ(rc, HMR_PARSEERROR);
+
+    hmr_close(&hmr);
+
+    fclose(fd);
+}
+
+void test_hmm_corrupted4(void)
+{
+    FILE *fd = fopen(ASSETS "/corrupted4.hmm", "r");
+    NOTNULL(fd);
+
+    HMR_DECLARE(hmr);
+
+    EQ(hmr_open(&hmr, fd), HMR_SUCCESS);
+
+    HMR_PROF_DECLARE(prof, &hmr);
+
+    unsigned prof_idx = 0;
+    enum hmr_rc rc = HMR_SUCCESS;
+    while (!(rc = hmr_next_prof(&hmr, &prof)))
+    {
+        unsigned node_idx = 0;
+        while (!(rc = hmr_next_node(&hmr, &prof)))
+        {
+            node_idx++;
+        }
+        EQ(rc, HMR_PARSEERROR);
+        printf("%s\n", hmr.error);
+        EQ(node_idx, 3);
+        EQ(prof.node.idx, 2);
+        EQ(hmr_prof_length(&prof), 40);
+        prof_idx++;
+    }
+    EQ(prof_idx, 1);
+    EQ(rc, HMR_ENDFILE);
 
     hmr_close(&hmr);
 

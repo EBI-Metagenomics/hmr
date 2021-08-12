@@ -7,7 +7,7 @@
 static void add_space_before_newline(char line[HMR_TOKEN_LINE_MAX]);
 static enum hmr_rc next_line(FILE *restrict fd, char line[HMR_TOKEN_LINE_MAX]);
 
-void token_init(struct hmr_token *tok)
+void token_init(struct hmr_token *tok, char *error)
 {
     tok->id = HMR_TOKEN_NEWLINE;
     memset(tok->line, '\0', HMR_TOKEN_LINE_MAX);
@@ -15,6 +15,7 @@ void token_init(struct hmr_token *tok)
     tok->consumed_line = true;
     tok->ptr = NULL;
     tok->value = tok->line;
+    tok->error = error;
 }
 
 enum hmr_rc token_next(FILE *restrict fd, struct hmr_token *tok)
