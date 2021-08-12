@@ -96,7 +96,7 @@ enum hmr_rc prof_next_prof(struct hmr_prof *prof, FILE *restrict fd,
 
         if ((*state = fsm_next(*state, tok, aux, prof)) == HMR_FSM_ERROR)
         {
-            error(tok, "unexpected end-of-node");
+            /* error(tok, "unexpected end-of-node"); */
             return HMR_PARSEERROR;
         }
 

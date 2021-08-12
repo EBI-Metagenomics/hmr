@@ -8,6 +8,8 @@ void test_hmm_corrupted2(void);
 void test_hmm_corrupted3(void);
 void test_hmm_corrupted4(void);
 void test_hmm_corrupted5(void);
+void test_hmm_corrupted6(void);
+void test_hmm_corrupted7(void);
 
 void check_3profs0(struct hmr_prof *prof);
 void check_3profs1(struct hmr_prof *prof);
@@ -28,6 +30,8 @@ int main(void)
     test_hmm_corrupted3();
     test_hmm_corrupted4();
     test_hmm_corrupted5();
+    test_hmm_corrupted6();
+    test_hmm_corrupted7();
     return hope_status();
 }
 
@@ -147,10 +151,11 @@ void test_hmm_corrupted2(void)
         EQ(prof.node.idx, prof_size[prof_idx]);
         EQ(hmr_prof_length(&prof), prof_size[prof_idx]);
         prof_idx++;
+        EQ(rc, HMR_ENDNODE);
     }
     EQ(prof_idx, 1);
     EQ(rc, HMR_PARSEERROR);
-    EQ(hmr.error, "Parse error: unexpected end-of-node: line 153");
+    EQ(hmr.error, "Parse error: expected content before end-of-line: line 153");
 
     hmr_close(&hmr);
 
@@ -184,7 +189,7 @@ void test_hmm_corrupted3(void)
     }
     EQ(prof_idx, 0);
     EQ(rc, HMR_PARSEERROR);
-    EQ(hmr.error, "Parse error: unexpected end-of-node: line 21");
+    EQ(hmr.error, "Parse error: missing LENG field");
 
     hmr_close(&hmr);
 
@@ -240,7 +245,53 @@ void test_hmm_corrupted5(void)
     enum hmr_rc rc = HMR_SUCCESS;
     rc = hmr_next_prof(&hmr, &prof);
     EQ(rc, HMR_PARSEERROR);
-    EQ(hmr.error, "Parse error: unexpected end-of-node: line 4");
+    EQ(hmr.error, "Parse error: unexpected token: line 4");
+    rc = hmr_next_node(&hmr, &prof);
+    EQ(rc, HMR_RUNTIMEERROR);
+
+    hmr_close(&hmr);
+
+    fclose(fd);
+}
+
+void test_hmm_corrupted6(void)
+{
+    FILE *fd = fopen("/Users/horta/data/corrupted6.hmm", "r");
+    NOTNULL(fd);
+
+    HMR_DECLARE(hmr);
+
+    EQ(hmr_open(&hmr, fd), HMR_SUCCESS);
+
+    HMR_PROF_DECLARE(prof, &hmr);
+
+    enum hmr_rc rc = HMR_SUCCESS;
+    rc = hmr_next_prof(&hmr, &prof);
+    EQ(rc, HMR_SUCCESS);
+    rc = hmr_next_node(&hmr, &prof);
+    EQ(rc, HMR_PARSEERROR);
+    EQ(hmr.error, "Parse error: failed to parse decimal number: line 25");
+
+    hmr_close(&hmr);
+
+    fclose(fd);
+}
+
+void test_hmm_corrupted7(void)
+{
+    FILE *fd = fopen("/Users/horta/data/corrupted7.hmm", "r");
+    NOTNULL(fd);
+
+    HMR_DECLARE(hmr);
+
+    EQ(hmr_open(&hmr, fd), HMR_SUCCESS);
+
+    HMR_PROF_DECLARE(prof, &hmr);
+
+    enum hmr_rc rc = HMR_SUCCESS;
+    rc = hmr_next_prof(&hmr, &prof);
+    EQ(rc, HMR_PARSEERROR);
+    EQ(hmr.error, "Parse error: invalid header: line 1");
     rc = hmr_next_node(&hmr, &prof);
     EQ(rc, HMR_RUNTIMEERROR);
 
