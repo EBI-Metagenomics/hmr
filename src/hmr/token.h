@@ -2,6 +2,7 @@
 #define HMR_TOKEN_H
 
 #include <stdbool.h>
+#include <string.h>
 
 enum hmr_token_id
 {
@@ -21,6 +22,7 @@ struct hmr_token
     char line[HMR_TOKEN_LINE_MAX];
     unsigned line_number;
     bool consumed_line;
+    char *ptr;
     char const *value;
 };
 
