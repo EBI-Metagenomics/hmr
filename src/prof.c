@@ -46,7 +46,7 @@ enum hmr_rc prof_next_node(struct hmr_prof *prof, FILE *restrict fd,
     if (*state != HMR_FSM_PAUSE)
         return HMR_RUNTIMEERROR;
 
-    aux_reset(aux);
+    aux_init(aux);
     do
     {
         enum hmr_rc rc = HMR_SUCCESS;
@@ -76,7 +76,7 @@ enum hmr_rc prof_next_prof(struct hmr_prof *prof, FILE *restrict fd,
         return HMR_RUNTIMEERROR;
 
     hmr_prof_init(prof);
-    aux_reset(aux);
+    aux_init(aux);
     do
     {
         enum hmr_rc rc = HMR_SUCCESS;

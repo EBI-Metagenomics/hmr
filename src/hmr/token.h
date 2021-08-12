@@ -24,6 +24,7 @@ struct hmr_token
     bool consumed_line;
     char *ptr;
     char const *value;
+    char *error;
 };
 
 #endif

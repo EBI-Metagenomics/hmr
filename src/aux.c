@@ -2,7 +2,7 @@
 #include "hmr/aux.h"
 #include <stdlib.h>
 
-void aux_reset(struct hmr_aux *aux)
+void aux_init(struct hmr_aux *aux)
 {
     aux->prof.begin = NULL;
     aux->prof.pos = NULL;
@@ -11,4 +11,5 @@ void aux_reset(struct hmr_aux *aux)
     aux->node.begin = NULL;
     aux->node.pos = NULL;
     aux->node.end = NULL;
+    aux->error[0] = '\0';
 }

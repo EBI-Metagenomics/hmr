@@ -1,5 +1,6 @@
 #include "fsm.h"
 #include "aux.h"
+#include "bug.h"
 #include "hmr/aux.h"
 #include "hmr/prof.h"
 #include "hmr/token.h"
@@ -115,7 +116,7 @@ static struct trans const transition[][6] = {
     [HMR_FSM_PAUSE] = {[HMR_TOKEN_WORD] = {HMR_FSM_MATCH, &match},
                        [HMR_TOKEN_NEWLINE] = {HMR_FSM_ERROR, &nop},
                        [HMR_TOKEN_HMM] = {HMR_FSM_ERROR, &nop},
-                       [HMR_TOKEN_COMPO] = {HMR_FSM_COMPO, &compo},
+                       [HMR_TOKEN_COMPO] = {HMR_FSM_COMPO, &nop},
                        [HMR_TOKEN_SLASH] = {HMR_FSM_SLASHED, &nop},
                        [HMR_TOKEN_EOF] = {HMR_FSM_ERROR, &nop}},
     [HMR_FSM_SLASHED] = {[HMR_TOKEN_WORD] = {HMR_FSM_ERROR, &nop},
@@ -159,6 +160,7 @@ static enum hmr_rc nop(struct hmr_token const *token, enum hmr_fsm_state state,
 static enum hmr_rc header(struct hmr_token const *tok, enum hmr_fsm_state state,
                           struct hmr_aux *aux, struct hmr_prof *prof)
 {
+    BUG(tok->id != HMR_TOKEN_WORD && tok->id != HMR_TOKEN_NEWLINE);
     if (tok->id == HMR_TOKEN_WORD)
     {
         if (aux->prof.pos > aux->prof.begin + 1)
@@ -175,10 +177,10 @@ static enum hmr_rc header(struct hmr_token const *tok, enum hmr_fsm_state state,
         aux->prof.pos = memccpy(aux->prof.pos - 1, tok->value, '\0',
                                 (unsigned long)(aux->prof.end - aux->prof.pos));
     }
-    else if (tok->id == HMR_TOKEN_NEWLINE)
+    else
     {
         *(aux->prof.pos - 1) = '\0';
-        aux_reset(aux);
+        aux_init(aux);
     }
     return HMR_SUCCESS;
 }
@@ -225,6 +227,9 @@ static enum hmr_rc field_content(struct hmr_token const *tok,
                                  enum hmr_fsm_state state, struct hmr_aux *aux,
                                  struct hmr_prof *prof)
 {
+    BUG(tok->id != HMR_TOKEN_WORD && tok->id != HMR_TOKEN_HMM &&
+        tok->id != HMR_TOKEN_COMPO && tok->id != HMR_TOKEN_NEWLINE);
+
     if (tok->id == HMR_TOKEN_WORD || tok->id == HMR_TOKEN_HMM ||
         tok->id == HMR_TOKEN_COMPO)
     {
@@ -236,12 +241,12 @@ static enum hmr_rc field_content(struct hmr_token const *tok,
         aux->prof.pos = memccpy(aux->prof.pos - 1, tok->value, '\0',
                                 (unsigned long)(aux->prof.end - aux->prof.pos));
     }
-    else if (tok->id == HMR_TOKEN_NEWLINE)
+    else
     {
         if (aux->prof.pos == aux->prof.begin + 1)
             return HMR_PARSEERROR;
         *(aux->prof.pos - 1) = '\0';
-        aux_reset(aux);
+        aux_init(aux);
     }
     return HMR_SUCCESS;
 }
@@ -258,17 +263,18 @@ static enum hmr_rc hmm(struct hmr_token const *tok, enum hmr_fsm_state state,
 static enum hmr_rc symbol(struct hmr_token const *tok, enum hmr_fsm_state state,
                           struct hmr_aux *aux, struct hmr_prof *prof)
 {
+    BUG(tok->id != HMR_TOKEN_WORD && tok->id != HMR_TOKEN_NEWLINE);
     if (tok->id == HMR_TOKEN_WORD)
     {
         *(aux->prof.pos - 1) = *tok->value;
         aux->prof.pos++;
     }
-    else if (tok->id == HMR_TOKEN_NEWLINE)
+    else
     {
         *(aux->prof.pos - 1) = '\0';
         prof->symbols_size = (unsigned)strlen(prof->symbols);
         prof->node.symbols_size = prof->symbols_size;
-        aux_reset(aux);
+        aux_init(aux);
     }
     return HMR_SUCCESS;
 }
@@ -276,6 +282,7 @@ static enum hmr_rc symbol(struct hmr_token const *tok, enum hmr_fsm_state state,
 static enum hmr_rc compo(struct hmr_token const *tok, enum hmr_fsm_state state,
                          struct hmr_aux *aux, struct hmr_prof *prof)
 {
+    BUG(tok->id != HMR_TOKEN_WORD && tok->id != HMR_TOKEN_NEWLINE);
     if (tok->id == HMR_TOKEN_WORD)
     {
         if (aux->node.idx >= prof->symbols_size)
@@ -284,13 +291,13 @@ static enum hmr_rc compo(struct hmr_token const *tok, enum hmr_fsm_state state,
         }
         to_double(tok->value, prof->node.compo + aux->node.idx++);
     }
-    else if (tok->id == HMR_TOKEN_NEWLINE)
+    else
     {
         if (aux->node.idx != prof->symbols_size)
         {
             return HMR_PARSEERROR;
         }
-        aux_reset(aux);
+        aux_init(aux);
     }
     return HMR_SUCCESS;
 }
@@ -298,6 +305,7 @@ static enum hmr_rc compo(struct hmr_token const *tok, enum hmr_fsm_state state,
 static enum hmr_rc insert(struct hmr_token const *tok, enum hmr_fsm_state state,
                           struct hmr_aux *aux, struct hmr_prof *prof)
 {
+    BUG(tok->id != HMR_TOKEN_WORD && tok->id != HMR_TOKEN_NEWLINE);
     if (tok->id == HMR_TOKEN_WORD)
     {
         if (aux->node.idx >= prof->symbols_size)
@@ -306,13 +314,13 @@ static enum hmr_rc insert(struct hmr_token const *tok, enum hmr_fsm_state state,
         }
         to_double(tok->value, prof->node.insert + aux->node.idx++);
     }
-    else if (tok->id == HMR_TOKEN_NEWLINE)
+    else
     {
         if (aux->node.idx != prof->symbols_size)
         {
             return HMR_PARSEERROR;
         }
-        aux_reset(aux);
+        aux_init(aux);
     }
     return HMR_SUCCESS;
 }
@@ -320,6 +328,7 @@ static enum hmr_rc insert(struct hmr_token const *tok, enum hmr_fsm_state state,
 static enum hmr_rc match(struct hmr_token const *tok, enum hmr_fsm_state state,
                          struct hmr_aux *aux, struct hmr_prof *prof)
 {
+    BUG(tok->id != HMR_TOKEN_WORD && tok->id != HMR_TOKEN_NEWLINE);
     if (tok->id == HMR_TOKEN_WORD)
     {
         if (state == HMR_FSM_PAUSE)
@@ -344,13 +353,13 @@ static enum hmr_rc match(struct hmr_token const *tok, enum hmr_fsm_state state,
         }
         to_double(tok->value, prof->node.match + aux->node.idx++);
     }
-    else if (tok->id == HMR_TOKEN_NEWLINE)
+    else
     {
         if (aux->node.idx > prof->symbols_size + HMR_MATCH_EXCESS_SIZE)
         {
             return HMR_PARSEERROR;
         }
-        aux_reset(aux);
+        aux_init(aux);
     }
     return HMR_SUCCESS;
 }
@@ -358,6 +367,7 @@ static enum hmr_rc match(struct hmr_token const *tok, enum hmr_fsm_state state,
 static enum hmr_rc trans(struct hmr_token const *tok, enum hmr_fsm_state state,
                          struct hmr_aux *aux, struct hmr_prof *prof)
 {
+    BUG(tok->id != HMR_TOKEN_WORD && tok->id != HMR_TOKEN_NEWLINE);
     if (tok->id == HMR_TOKEN_WORD)
     {
         if (aux->node.idx >= HMR_TRANS_SIZE)
@@ -366,13 +376,13 @@ static enum hmr_rc trans(struct hmr_token const *tok, enum hmr_fsm_state state,
         }
         to_double(tok->value, prof->node.trans + aux->node.idx++);
     }
-    else if (tok->id == HMR_TOKEN_NEWLINE)
+    else
     {
         if (aux->node.idx != HMR_TRANS_SIZE)
         {
             return HMR_PARSEERROR;
         }
-        aux_reset(aux);
+        aux_init(aux);
     }
     return HMR_SUCCESS;
 }

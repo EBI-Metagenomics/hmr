@@ -3,6 +3,6 @@
 
 struct hmr_aux;
 
-void aux_reset(struct hmr_aux *aux);
+void aux_init(struct hmr_aux *aux);
 
 #endif
