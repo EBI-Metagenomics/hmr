@@ -2,7 +2,7 @@
 #include "hmr/node.h"
 #include <math.h>
 
-void hmr_node_dump(struct hmr_node const *node, FILE *fd)
+void hmr_node_dump(struct hmr_node const *node, FILE *restrict fd)
 {
     if (node->idx == 0)
         fprintf(fd, "COMPO");

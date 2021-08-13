@@ -5,7 +5,9 @@
 #include "hmr/error.h"
 #include "hmr/export.h"
 #include "hmr/fsm.h"
+#include "hmr/node.h"
 #include "hmr/prof.h"
+#include "hmr/rc.h"
 #include "hmr/tok.h"
 #include <stdio.h>
 

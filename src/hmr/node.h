@@ -28,6 +28,6 @@ struct hmr_node
     double trans[HMR_TRANS_SIZE];
 };
 
-HMR_API void hmr_node_dump(struct hmr_node const *node, FILE *fd);
+HMR_API void hmr_node_dump(struct hmr_node const *node, FILE *restrict fd);
 
 #endif

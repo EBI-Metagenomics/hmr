@@ -11,7 +11,7 @@
 #include <limits.h>
 #include <stdlib.h>
 
-void hmr_prof_dump(struct hmr_prof const *prof, FILE *fd)
+void hmr_prof_dump(struct hmr_prof const *prof, FILE *restrict fd)
 {
     fprintf(fd, "HEADER: %s\n", prof->header);
     fprintf(fd, "  Name: %s\n", prof->meta.name);
