@@ -2,13 +2,12 @@
 #define HMR_HMR_H
 
 #include "hmr/aux.h"
+#include "hmr/error.h"
 #include "hmr/export.h"
 #include "hmr/fsm.h"
 #include "hmr/prof.h"
 #include "hmr/token.h"
 #include <stdio.h>
-
-#define HMR_ERROR_SIZE 128
 
 struct hmr
 {

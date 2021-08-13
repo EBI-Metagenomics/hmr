@@ -23,6 +23,8 @@ void error_tok(struct hmr_token *tok, char const *msg)
     __errorl(tok->error, msg, tok->line_number);
 }
 
+void error_chr(char *dst, char const *msg) { __error(dst, msg); }
+
 void __error(char *dst, char const *msg)
 {
     dst = stpcpy(dst, PARSE_MSG);

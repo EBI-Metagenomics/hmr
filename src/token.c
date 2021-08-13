@@ -1,11 +1,14 @@
 #include "token.h"
+#include "error.h"
+#include "hmr/error.h"
 #include "hmr/token.h"
 #include <string.h>
 
 #define DELIM " \t\r"
 
 static void add_space_before_newline(char line[HMR_TOKEN_LINE_MAX]);
-static enum hmr_rc next_line(FILE *restrict fd, char line[HMR_TOKEN_LINE_MAX]);
+static enum hmr_rc next_line(FILE *restrict fd, char error[HMR_ERROR_SIZE],
+                             char line[HMR_TOKEN_LINE_MAX]);
 
 void token_init(struct hmr_token *tok, char *error)
 {
@@ -24,7 +27,7 @@ enum hmr_rc token_next(FILE *restrict fd, struct hmr_token *tok)
 
     if (tok->consumed_line)
     {
-        if ((rc = next_line(fd, tok->line)))
+        if ((rc = next_line(fd, tok->error, tok->line)))
         {
             if (rc == HMR_ENDFILE)
             {
@@ -33,7 +36,7 @@ enum hmr_rc token_next(FILE *restrict fd, struct hmr_token *tok)
                 tok->line[0] = '\0';
                 return HMR_SUCCESS;
             }
-            return HMR_IOERROR;
+            return rc;
         }
         tok->value = strtok_r(tok->line, DELIM, &tok->ptr);
         tok->line_number++;
@@ -60,15 +63,15 @@ enum hmr_rc token_next(FILE *restrict fd, struct hmr_token *tok)
     return HMR_SUCCESS;
 }
 
-static enum hmr_rc next_line(FILE *restrict fd, char line[HMR_TOKEN_LINE_MAX])
+static enum hmr_rc next_line(FILE *restrict fd, char error[HMR_ERROR_SIZE],
+                             char line[HMR_TOKEN_LINE_MAX])
 {
     if (!fgets(line, HMR_TOKEN_LINE_MAX - 1, fd))
     {
         if (feof(fd))
             return HMR_ENDFILE;
 
-        perror("fgets() failed");
-        clearerr(fd);
+        strerror_r(ferror(fd), error, HMR_ERROR_SIZE);
         return HMR_IOERROR;
     }
 
