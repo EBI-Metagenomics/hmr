@@ -1,14 +1,14 @@
 #include "hmr/hmr.h"
 #include "fsm.h"
 #include "prof.h"
-#include "token.h"
+#include "tok.h"
 
 void hmr_init(struct hmr *hmr)
 {
     hmr->fd = NULL;
     fsm_init(&hmr->state);
     hmr->error[0] = '\0';
-    token_init(&hmr->tok, hmr->error);
+    tok_init(&hmr->tok, hmr->error);
 }
 
 enum hmr_rc hmr_open(struct hmr *hmr, FILE *restrict fd)
@@ -29,4 +29,8 @@ enum hmr_rc hmr_next_node(struct hmr *hmr, struct hmr_prof *prof)
 
 void hmr_clear_error(struct hmr *hmr) { hmr->error[0] = '\0'; }
 
-void hmr_close(struct hmr *hmr) { hmr->fd = NULL; }
+void hmr_close(struct hmr *hmr)
+{
+    hmr->fd = NULL;
+    hmr->error[0] = '\0';
+}

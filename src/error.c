@@ -3,36 +3,48 @@
 #include "bug.h"
 #include "hmr/aux.h"
 #include "hmr/prof.h"
-#include "hmr/token.h"
+#include "hmr/tok.h"
 #include <stdio.h>
 #include <string.h>
 
 #define PARSE_MSG "Parse error: "
 #define LINE_MSG ": line "
 
-void __error(char *dst, char const *msg);
-void __errorl(char *dst, char const *msg, unsigned line);
+void error(char *dst, char const *msg);
+void errorl(char *dst, char const *msg, unsigned line);
 
-void error_prof(struct hmr_prof *prof, char const *msg)
+enum hmr_rc __error_parse_prof(struct hmr_prof *prof, char const *msg)
 {
-    __error(prof->error, msg);
+    error(prof->error, msg);
+    return HMR_PARSEERROR;
 }
 
-void error_tok(struct hmr_token *tok, char const *msg)
+enum hmr_rc __error_parse_tok(struct hmr_tok *tok, char const *msg)
 {
-    __errorl(tok->error, msg, tok->line_number);
+    errorl(tok->error, msg, tok->line_number);
+    return HMR_PARSEERROR;
 }
 
-void error_chr(char *dst, char const *msg) { __error(dst, msg); }
+enum hmr_rc error_io(char *dst, int errnum)
+{
+    strerror_r(errnum, dst, HMR_ERROR_SIZE);
+    return HMR_IOERROR;
+}
 
-void __error(char *dst, char const *msg)
+enum hmr_rc error_runtime(char *dst, char const func[], char const *msg)
+{
+    error(dst, msg);
+    return HMR_RUNTIMEERROR;
+}
+
+void error(char *dst, char const *msg)
 {
     dst = stpcpy(dst, PARSE_MSG);
     dst = memccpy(dst, msg, '\0', HMR_ERROR_SIZE - sizeof PARSE_MSG);
     BUG(!dst);
 }
 
-void __errorl(char *dst, char const *msg, unsigned line)
+void errorl(char *dst, char const *msg, unsigned line)
 {
     dst = stpcpy(dst, PARSE_MSG);
     dst = memccpy(dst, msg, '\0',

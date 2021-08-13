@@ -4,10 +4,10 @@
 #include "fsm.h"
 #include "hmr.h"
 #include "hmr/hmr.h"
-#include "hmr/token.h"
+#include "hmr/tok.h"
 #include "node.h"
 #include "prof.h"
-#include "token.h"
+#include "tok.h"
 #include <limits.h>
 #include <stdlib.h>
 
@@ -49,16 +49,16 @@ void prof_init(struct hmr_prof *prof, char *error)
 
 enum hmr_rc prof_next_node(struct hmr_prof *prof, FILE *restrict fd,
                            struct hmr_aux *aux, enum hmr_fsm_state *state,
-                           struct hmr_token *tok)
+                           struct hmr_tok *tok)
 {
     if (*state != HMR_FSM_PAUSE)
-        return HMR_RUNTIMEERROR;
+        return error_runtime(prof->error, "unexpected %s call", __func__);
 
     aux_init(aux);
     do
     {
         enum hmr_rc rc = HMR_SUCCESS;
-        if ((rc = token_next(fd, tok)))
+        if ((rc = tok_next(fd, tok)))
             return rc;
 
         *state = fsm_next(*state, tok, aux, prof);
@@ -68,8 +68,7 @@ enum hmr_rc prof_next_node(struct hmr_prof *prof, FILE *restrict fd,
         {
             if (hmr_prof_length(prof) != prof->node.idx)
             {
-                error(tok, "profile length mismatch");
-                return HMR_PARSEERROR;
+                return error_parse(tok, "profile length mismatch");
             }
             return HMR_ENDNODE;
         }
@@ -81,17 +80,17 @@ enum hmr_rc prof_next_node(struct hmr_prof *prof, FILE *restrict fd,
 
 enum hmr_rc prof_next_prof(struct hmr_prof *prof, FILE *restrict fd,
                            struct hmr_aux *aux, enum hmr_fsm_state *state,
-                           struct hmr_token *tok)
+                           struct hmr_tok *tok)
 {
     if (*state != HMR_FSM_BEGIN)
-        return HMR_RUNTIMEERROR;
+        return error_runtime(prof->error, "unexpected %s call", __func__);
 
     prof_init(prof, tok->error);
     aux_init(aux);
     do
     {
         enum hmr_rc rc = HMR_SUCCESS;
-        if ((rc = token_next(fd, tok)))
+        if ((rc = tok_next(fd, tok)))
             return rc;
 
         if ((*state = fsm_next(*state, tok, aux, prof)) == HMR_FSM_ERROR)

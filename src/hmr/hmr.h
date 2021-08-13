@@ -6,14 +6,14 @@
 #include "hmr/export.h"
 #include "hmr/fsm.h"
 #include "hmr/prof.h"
-#include "hmr/token.h"
+#include "hmr/tok.h"
 #include <stdio.h>
 
 struct hmr
 {
     FILE *restrict fd;
     enum hmr_fsm_state state;
-    struct hmr_token tok;
+    struct hmr_tok tok;
     struct hmr_aux aux;
     char error[HMR_ERROR_SIZE];
 };
