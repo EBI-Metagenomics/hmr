@@ -29,7 +29,12 @@ struct trans
     enum hmr_rc (*action)(struct args *a);
 };
 
+static char const arrows[HMR_TRANS_SIZE][6] = {"m->m", "m->i", "m->d", "i->m",
+                                               "i->i", "d->m", "d->d"};
+
 static enum hmr_rc nop(struct args *a) { return HMR_SUCCESS; }
+
+static enum hmr_rc arrow(struct args *a);
 
 static enum hmr_rc unexpect_eof(struct args *a)
 {
@@ -111,8 +116,8 @@ static struct trans const transition[][6] = {
                         [HMR_TOK_COMPO] = {HMR_FSM_ERROR, &unexpect_symbol},
                         [HMR_TOK_SLASH] = {HMR_FSM_ERROR, &unexpect_symbol},
                         [HMR_TOK_EOF] = {HMR_FSM_ERROR, &unexpect_eof}},
-    [HMR_FSM_ARROW] = {[HMR_TOK_WORD] = {HMR_FSM_ARROW, &nop},
-                       [HMR_TOK_NEWLINE] = {HMR_FSM_PAUSE, &nop},
+    [HMR_FSM_ARROW] = {[HMR_TOK_WORD] = {HMR_FSM_ARROW, &arrow},
+                       [HMR_TOK_NEWLINE] = {HMR_FSM_PAUSE, &arrow},
                        [HMR_TOK_HMM] = {HMR_FSM_ERROR, &unexpect_token},
                        [HMR_TOK_COMPO] = {HMR_FSM_ERROR, &unexpect_token},
                        [HMR_TOK_SLASH] = {HMR_FSM_ERROR, &unexpect_token},
@@ -178,6 +183,27 @@ enum hmr_fsm_state fsm_next(enum hmr_fsm_state state, struct hmr_tok *tok,
 }
 
 char const *fsm_name(enum hmr_fsm_state state) { return state_name[state]; }
+
+static enum hmr_rc arrow(struct args *a)
+{
+    BUG(a->tok->id != HMR_TOK_WORD && a->tok->id != HMR_TOK_NEWLINE);
+    if (a->tok->id == HMR_TOK_WORD)
+    {
+        if (a->aux->idx >= HMR_TRANS_SIZE)
+            return unexpect_token(a);
+
+        if (strcmp(a->tok->value, arrows[a->aux->idx]))
+            return error_parse(a->tok, "expected %s", arrows[a->aux->idx]);
+        a->aux->idx++;
+    }
+    else
+    {
+        if (a->aux->idx != HMR_TRANS_SIZE)
+            return error_parse(a->tok, "unexpected end-of-line");
+        aux_init(a->aux);
+    }
+    return HMR_SUCCESS;
+}
 
 static enum hmr_rc header(struct args *a)
 {
@@ -303,15 +329,15 @@ static enum hmr_rc compo(struct args *a)
     BUG(a->tok->id != HMR_TOK_WORD && a->tok->id != HMR_TOK_NEWLINE);
     if (a->tok->id == HMR_TOK_WORD)
     {
-        if (a->aux->node.idx >= a->prof->symbols_size)
+        if (a->aux->idx >= a->prof->symbols_size)
             return error_parse(a->tok, "too many compo numbers");
 
-        if (to_double(a->tok->value, a->prof->node.compo + a->aux->node.idx++))
+        if (to_double(a->tok->value, a->prof->node.compo + a->aux->idx++))
             return error_parse(a->tok, DEC_ERROR);
     }
     else
     {
-        if (a->aux->node.idx != a->prof->symbols_size)
+        if (a->aux->idx != a->prof->symbols_size)
             return error_parse(a->tok,
                                "compo length not equal to symbols length");
         aux_init(a->aux);
@@ -324,15 +350,15 @@ static enum hmr_rc insert(struct args *a)
     BUG(a->tok->id != HMR_TOK_WORD && a->tok->id != HMR_TOK_NEWLINE);
     if (a->tok->id == HMR_TOK_WORD)
     {
-        if (a->aux->node.idx >= a->prof->symbols_size)
+        if (a->aux->idx >= a->prof->symbols_size)
             return error_parse(a->tok, "too many insert numbers");
 
-        if (to_double(a->tok->value, a->prof->node.insert + a->aux->node.idx++))
+        if (to_double(a->tok->value, a->prof->node.insert + a->aux->idx++))
             return error_parse(a->tok, DEC_ERROR);
     }
     else
     {
-        if (a->aux->node.idx != a->prof->symbols_size)
+        if (a->aux->idx != a->prof->symbols_size)
             return error_parse(a->tok,
                                "insert length not equal to symbols length");
         aux_init(a->aux);
@@ -354,21 +380,20 @@ static enum hmr_rc match(struct args *a)
             a->prof->node.idx = i;
             return HMR_SUCCESS;
         }
-        if (a->aux->node.idx >= a->prof->symbols_size)
+        if (a->aux->idx >= a->prof->symbols_size)
         {
-            if (a->aux->node.idx >=
-                a->prof->symbols_size + HMR_MATCH_EXCESS_SIZE)
+            if (a->aux->idx >= a->prof->symbols_size + HMR_MATCH_EXCESS_SIZE)
                 return error_parse(a->tok, "too many match numbers");
 
-            a->aux->node.idx++;
+            a->aux->idx++;
             return HMR_SUCCESS;
         }
-        if (to_double(a->tok->value, a->prof->node.match + a->aux->node.idx++))
+        if (to_double(a->tok->value, a->prof->node.match + a->aux->idx++))
             return error_parse(a->tok, DEC_ERROR);
     }
     else
     {
-        if (a->aux->node.idx > a->prof->symbols_size + HMR_MATCH_EXCESS_SIZE)
+        if (a->aux->idx > a->prof->symbols_size + HMR_MATCH_EXCESS_SIZE)
             return error_parse(a->tok, "too many match numbers");
         aux_init(a->aux);
     }
@@ -380,15 +405,15 @@ static enum hmr_rc trans(struct args *a)
     BUG(a->tok->id != HMR_TOK_WORD && a->tok->id != HMR_TOK_NEWLINE);
     if (a->tok->id == HMR_TOK_WORD)
     {
-        if (a->aux->node.idx >= HMR_TRANS_SIZE)
+        if (a->aux->idx >= HMR_TRANS_SIZE)
             return error_parse(a->tok, "too many trans numbers");
 
-        if (to_double(a->tok->value, a->prof->node.trans + a->aux->node.idx++))
+        if (to_double(a->tok->value, a->prof->node.trans + a->aux->idx++))
             return error_parse(a->tok, DEC_ERROR);
     }
     else
     {
-        if (a->aux->node.idx != HMR_TRANS_SIZE)
+        if (a->aux->idx != HMR_TRANS_SIZE)
             return error_parse(
                 a->tok, "trans length not equal to " XSTR(HMR_TRANS_SIZE));
         aux_init(a->aux);

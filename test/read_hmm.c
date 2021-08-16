@@ -10,6 +10,7 @@ void test_hmm_corrupted4(void);
 void test_hmm_corrupted5(void);
 void test_hmm_corrupted6(void);
 void test_hmm_corrupted7(void);
+void test_hmm_corrupted8(void);
 
 void check_3profs0(struct hmr_prof *prof);
 void check_3profs1(struct hmr_prof *prof);
@@ -32,6 +33,7 @@ int main(void)
     test_hmm_corrupted5();
     test_hmm_corrupted6();
     test_hmm_corrupted7();
+    test_hmm_corrupted8();
     return hope_status();
 }
 
@@ -84,6 +86,7 @@ void test_hmm_empty(void)
 
     EQ(hmr_next_prof(&hmr, &prof), HMR_ENDFILE);
     EQ(hmr_next_prof(&hmr, &prof), HMR_RUNTIMEERROR);
+    EQ(hmr.error, "Runtime error: unexpected prof_next_prof call");
 
     hmr_close(&hmr);
 
@@ -248,6 +251,7 @@ void test_hmm_corrupted5(void)
     EQ(hmr.error, "Parse error: unexpected token: line 4");
     rc = hmr_next_node(&hmr, &prof);
     EQ(rc, HMR_RUNTIMEERROR);
+    EQ(hmr.error, "Runtime error: unexpected prof_next_node call");
 
     hmr_close(&hmr);
 
@@ -294,12 +298,36 @@ void test_hmm_corrupted7(void)
     EQ(hmr.error, "Parse error: invalid header: line 1");
     rc = hmr_next_node(&hmr, &prof);
     EQ(rc, HMR_RUNTIMEERROR);
+    EQ(hmr.error, "Runtime error: unexpected prof_next_node call");
 
     hmr_close(&hmr);
 
     fclose(fd);
 }
 
+void test_hmm_corrupted8(void)
+{
+    FILE *fd = fopen(ASSETS "/corrupted8.hmm", "r");
+    NOTNULL(fd);
+
+    HMR_DECLARE(hmr);
+
+    EQ(hmr_open(&hmr, fd), HMR_SUCCESS);
+
+    HMR_PROF_DECLARE(prof, &hmr);
+
+    enum hmr_rc rc = HMR_SUCCESS;
+    rc = hmr_next_prof(&hmr, &prof);
+    EQ(rc, HMR_PARSEERROR);
+    EQ(hmr.error, "Parse error: expected i->i: line 9");
+    rc = hmr_next_node(&hmr, &prof);
+    EQ(rc, HMR_RUNTIMEERROR);
+    EQ(hmr.error, "Runtime error: unexpected prof_next_node call");
+
+    hmr_close(&hmr);
+
+    fclose(fd);
+}
 void check_3profs0(struct hmr_prof *prof)
 {
     if (prof->node.idx == 0)

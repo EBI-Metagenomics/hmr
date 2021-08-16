@@ -1,56 +1,69 @@
 #include "error.h"
 #include "aux.h"
-#include "bug.h"
+#include "die.h"
 #include "hmr/aux.h"
 #include "hmr/prof.h"
 #include "hmr/tok.h"
-#include <stdio.h>
-#include <string.h>
+#include <stdarg.h>
 
-#define PARSE_MSG "Parse error: "
-#define LINE_MSG ": line "
+#define PARSE_ERROR "Parse error: "
+#define RUNTIME_ERROR "Runtime error: "
+#define LINE ": line"
 
-void error(char *dst, char const *msg);
-void errorl(char *dst, char const *msg, unsigned line);
-
-enum hmr_rc __error_parse_prof(struct hmr_prof *prof, char const *msg)
+static inline int copy_fmt(int dst_size, char *dst, char const *fmt, ...)
 {
-    error(prof->error, msg);
-    return HMR_PARSEERROR;
+    va_list ap;
+    va_start(ap, fmt);
+    int n = vsnprintf(dst, dst_size, fmt, ap);
+    va_end(ap);
+    if (n < 0)
+        die();
+    return n;
 }
 
-enum hmr_rc __error_parse_tok(struct hmr_tok *tok, char const *msg)
+static inline int copy_ap(int dst_size, char *dst, char const *fmt, va_list ap)
 {
-    errorl(tok->error, msg, tok->line_number);
-    return HMR_PARSEERROR;
+    int n = vsnprintf(dst, dst_size, fmt, ap);
+    if (n < 0)
+        die();
+    return n;
 }
 
 enum hmr_rc error_io(char *dst, int errnum)
 {
-    strerror_r(errnum, dst, HMR_ERROR_SIZE);
+    if (strerror_r(errnum, dst, HMR_ERROR_SIZE))
+        die();
     return HMR_IOERROR;
 }
 
-enum hmr_rc error_runtime(char *dst, char const func[], char const *msg)
+enum hmr_rc error_runtime(char *dst, char const *fmt, ...)
 {
-    error(dst, msg);
+    int n = copy_fmt(HMR_ERROR_SIZE, dst, RUNTIME_ERROR);
+    va_list ap;
+    va_start(ap, fmt);
+    copy_ap(HMR_ERROR_SIZE - n, dst + n, fmt, ap);
+    va_end(ap);
     return HMR_RUNTIMEERROR;
 }
 
-void error(char *dst, char const *msg)
+enum hmr_rc __error_parse_prof(struct hmr_prof *prof, char const *fmt, ...)
 {
-    dst = stpcpy(dst, PARSE_MSG);
-    dst = memccpy(dst, msg, '\0', HMR_ERROR_SIZE - sizeof PARSE_MSG);
-    BUG(!dst);
+    int n = copy_fmt(HMR_ERROR_SIZE, prof->error, PARSE_ERROR);
+    va_list ap;
+    va_start(ap, fmt);
+    copy_fmt(HMR_ERROR_SIZE - n, prof->error + n, fmt, ap);
+    va_end(ap);
+    return HMR_PARSEERROR;
 }
 
-void errorl(char *dst, char const *msg, unsigned line)
+enum hmr_rc __error_parse_tok(struct hmr_tok *tok, char const *fmt, ...)
 {
-    dst = stpcpy(dst, PARSE_MSG);
-    dst = memccpy(dst, msg, '\0',
-                  HMR_ERROR_SIZE - sizeof PARSE_MSG - sizeof LINE_MSG - 6);
-    BUG(!dst);
-    dst = stpcpy(dst - 1, LINE_MSG);
-    int n = snprintf(dst, 6, "%d", line);
-    BUG(n >= 6);
+    int n = copy_fmt(HMR_ERROR_SIZE, tok->error, PARSE_ERROR);
+    va_list ap;
+    va_start(ap, fmt);
+    n += copy_ap(HMR_ERROR_SIZE - n, tok->error + n, fmt, ap);
+    va_end(ap);
+    copy_fmt(HMR_ERROR_SIZE - n, tok->error + n, "%s %d", LINE,
+             tok->line_number);
+    return HMR_PARSEERROR;
 }

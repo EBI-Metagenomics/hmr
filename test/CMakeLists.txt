@@ -40,6 +40,10 @@ file(DOWNLOAD ${URL}/corrupted7.hmm.7z ${ASSETS}/corrupted7.hmm.7z
      EXPECTED_HASH SHA1=3793798611c6561c9cced3b5ec469ded39a12bed)
 file(ARCHIVE_EXTRACT INPUT ${ASSETS}/corrupted7.hmm.7z DESTINATION ${ASSETS})
 
+file(DOWNLOAD ${URL}/corrupted8.hmm.7z ${ASSETS}/corrupted8.hmm.7z
+     EXPECTED_HASH SHA1=177e57ef67ce4a49f4fcf77901ddec5b5fb5c744)
+file(ARCHIVE_EXTRACT INPUT ${ASSETS}/corrupted8.hmm.7z DESTINATION ${ASSETS})
+
 function(hmr_add_test name srcs)
   add_executable(${name} ${srcs})
   add_dependencies(all_tests ${name})

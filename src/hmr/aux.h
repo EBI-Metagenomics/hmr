@@ -14,12 +14,12 @@ struct hmr_aux
 
         struct
         {
-            unsigned idx;
             double *begin;
             double *pos;
             double *end;
         } node;
     };
+    unsigned idx;
 };
 
 #endif
