@@ -101,10 +101,8 @@ install(
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
   PUBLIC_HEADER DESTINATION include)
-# install(DIRECTORY include/ DESTINATION include)
-install(DIRECTORY src/hmr/ DESTINATION hmr)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/hmr/export.h
-              ${CMAKE_CURRENT_BINARY_DIR}/hmr/config.h DESTINATION hmr)
+install(DIRECTORY src/hmr/ DESTINATION include/hmr)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/hmr/export.h DESTINATION include/hmr)
 install(
   EXPORT hmr-targets
   FILE hmr-targets.cmake
