@@ -84,16 +84,6 @@ target_compile_options(hmr PRIVATE ${WARNING_FLAGS})
 target_compile_options(hmr PRIVATE "-fverbose-asm")
 target_link_libraries(hmr INTERFACE $<$<BOOL:${UNIX}>:m>)
 
-include(CheckCSourceCompiles)
-check_c_source_compiles(
-  "
-        static void f(char const* err, ...) __attribute__((format(printf, 1, 2)));
-        int main(void) {return 0;}
-    "
-  HAVE_ATTR_FMT)
-target_compile_definitions(hmr
-                           PRIVATE $<$<BOOL:${HAVE_ATTR_FMT}>:HAVE_ATTR_FMT>)
-
 install(
   TARGETS hmr
   EXPORT hmr-targets
