@@ -9,6 +9,7 @@
 #include "hmr/rc.h"
 #include "hmr/state.h"
 #include "hmr/tok.h"
+#include "hmr/trans.h"
 #include <stdio.h>
 
 struct hmr

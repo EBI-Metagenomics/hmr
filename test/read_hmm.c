@@ -292,33 +292,33 @@ void check_3profs0(struct hmr_prof *prof)
 {
     if (prof->node.idx == 0)
     {
-        CLOSE(prof->node.compo[0], 2.29746);
-        CLOSE(prof->node.compo[prof->symbols_size - 1], 3.82158);
-        CLOSE(prof->node.insert[0], 2.68618);
-        CLOSE(prof->node.insert[prof->symbols_size - 1], 3.61503);
-        CLOSE(prof->node.trans[0], 0.00201);
-        CLOSE(prof->node.trans[HMR_TRANS_SIZE - 2], 0.0);
-        CLOSE(prof->node.trans[HMR_TRANS_SIZE - 1], NAN);
+        CLOSE(prof->node.compo[0], -2.29746);
+        CLOSE(prof->node.compo[prof->symbols_size - 1], -3.82158);
+        CLOSE(prof->node.insert[0], -2.68618);
+        CLOSE(prof->node.insert[prof->symbols_size - 1], -3.61503);
+        CLOSE(prof->node.trans[0], -0.00201);
+        CLOSE(prof->node.trans[HMR_TRANS_SIZE - 2], -0.0);
+        CLOSE(prof->node.trans[HMR_TRANS_SIZE - 1], -INFINITY);
     }
     if (prof->node.idx == 1)
     {
-        CLOSE(prof->node.match[0], 0.34643);
-        CLOSE(prof->node.match[prof->symbols_size - 1], 7.58384);
-        CLOSE(prof->node.insert[0], 2.68618);
-        CLOSE(prof->node.insert[prof->symbols_size - 1], 3.61503);
-        CLOSE(prof->node.trans[0], 0.00201);
-        CLOSE(prof->node.trans[HMR_TRANS_SIZE - 1], 0.95510);
+        CLOSE(prof->node.match[0], -0.34643);
+        CLOSE(prof->node.match[prof->symbols_size - 1], -7.58384);
+        CLOSE(prof->node.insert[0], -2.68618);
+        CLOSE(prof->node.insert[prof->symbols_size - 1], -3.61503);
+        CLOSE(prof->node.trans[0], -0.00201);
+        CLOSE(prof->node.trans[HMR_TRANS_SIZE - 1], -0.95510);
     }
     if (prof->node.idx == 40)
     {
-        CLOSE(prof->node.match[0], 3.29199);
-        CLOSE(prof->node.match[prof->symbols_size - 1], 3.78781);
-        CLOSE(prof->node.insert[0], 2.68618);
-        CLOSE(prof->node.insert[prof->symbols_size - 1], 3.61503);
-        CLOSE(prof->node.trans[0], 0.00135);
-        CLOSE(prof->node.trans[2], NAN);
+        CLOSE(prof->node.match[0], -3.29199);
+        CLOSE(prof->node.match[prof->symbols_size - 1], -3.78781);
+        CLOSE(prof->node.insert[0], -2.68618);
+        CLOSE(prof->node.insert[prof->symbols_size - 1], -3.61503);
+        CLOSE(prof->node.trans[0], -0.00135);
+        CLOSE(prof->node.trans[2], -INFINITY);
         CLOSE(prof->node.trans[HMR_TRANS_SIZE - 2], 0.0);
-        CLOSE(prof->node.trans[HMR_TRANS_SIZE - 1], NAN);
+        CLOSE(prof->node.trans[HMR_TRANS_SIZE - 1], -INFINITY);
     }
 }
 
@@ -326,33 +326,33 @@ void check_3profs1(struct hmr_prof *prof)
 {
     if (prof->node.idx == 0)
     {
-        CLOSE(prof->node.compo[0], 2.47491);
-        CLOSE(prof->node.compo[prof->symbols_size - 1], 3.46896);
-        CLOSE(prof->node.insert[0], 2.68618);
-        CLOSE(prof->node.insert[prof->symbols_size - 1], 3.61503);
-        CLOSE(prof->node.trans[0], 0.02633);
+        CLOSE(prof->node.compo[0], -2.47491);
+        CLOSE(prof->node.compo[prof->symbols_size - 1], -3.46896);
+        CLOSE(prof->node.insert[0], -2.68618);
+        CLOSE(prof->node.insert[prof->symbols_size - 1], -3.61503);
+        CLOSE(prof->node.trans[0], -0.02633);
         CLOSE(prof->node.trans[HMR_TRANS_SIZE - 2], 0.0);
-        CLOSE(prof->node.trans[HMR_TRANS_SIZE - 1], NAN);
+        CLOSE(prof->node.trans[HMR_TRANS_SIZE - 1], -INFINITY);
     }
     if (prof->node.idx == 1)
     {
-        CLOSE(prof->node.match[0], 3.26601);
-        CLOSE(prof->node.match[prof->symbols_size - 1], 4.14252);
-        CLOSE(prof->node.insert[0], 2.68618);
-        CLOSE(prof->node.insert[prof->symbols_size - 1], 3.61503);
-        CLOSE(prof->node.trans[0], 0.02633);
-        CLOSE(prof->node.trans[HMR_TRANS_SIZE - 1], 0.95510);
+        CLOSE(prof->node.match[0], -3.26601);
+        CLOSE(prof->node.match[prof->symbols_size - 1], -4.14252);
+        CLOSE(prof->node.insert[0], -2.68618);
+        CLOSE(prof->node.insert[prof->symbols_size - 1], -3.61503);
+        CLOSE(prof->node.trans[0], -0.02633);
+        CLOSE(prof->node.trans[HMR_TRANS_SIZE - 1], -0.95510);
     }
     if (prof->node.idx == 235)
     {
-        CLOSE(prof->node.match[0], 2.75686);
-        CLOSE(prof->node.match[prof->symbols_size - 1], 3.85418);
-        CLOSE(prof->node.insert[0], 2.68618);
-        CLOSE(prof->node.insert[prof->symbols_size - 1], 3.61503);
-        CLOSE(prof->node.trans[0], 0.01780);
-        CLOSE(prof->node.trans[2], NAN);
+        CLOSE(prof->node.match[0], -2.75686);
+        CLOSE(prof->node.match[prof->symbols_size - 1], -3.85418);
+        CLOSE(prof->node.insert[0], -2.68618);
+        CLOSE(prof->node.insert[prof->symbols_size - 1], -3.61503);
+        CLOSE(prof->node.trans[0], -0.01780);
+        CLOSE(prof->node.trans[2], -INFINITY);
         CLOSE(prof->node.trans[HMR_TRANS_SIZE - 2], 0.0);
-        CLOSE(prof->node.trans[HMR_TRANS_SIZE - 1], NAN);
+        CLOSE(prof->node.trans[HMR_TRANS_SIZE - 1], -INFINITY);
     }
 }
 
@@ -360,32 +360,32 @@ void check_3profs2(struct hmr_prof *prof)
 {
     if (prof->node.idx == 0)
     {
-        CLOSE(prof->node.compo[0], 2.55148);
-        CLOSE(prof->node.compo[prof->symbols_size - 1], 3.24305);
-        CLOSE(prof->node.insert[0], 2.68618);
-        CLOSE(prof->node.insert[prof->symbols_size - 1], 3.61503);
-        CLOSE(prof->node.trans[0], 0.01335);
+        CLOSE(prof->node.compo[0], -2.55148);
+        CLOSE(prof->node.compo[prof->symbols_size - 1], -3.24305);
+        CLOSE(prof->node.insert[0], -2.68618);
+        CLOSE(prof->node.insert[prof->symbols_size - 1], -3.61503);
+        CLOSE(prof->node.trans[0], -0.01335);
         CLOSE(prof->node.trans[HMR_TRANS_SIZE - 2], 0.0);
-        CLOSE(prof->node.trans[HMR_TRANS_SIZE - 1], NAN);
+        CLOSE(prof->node.trans[HMR_TRANS_SIZE - 1], -INFINITY);
     }
     if (prof->node.idx == 1)
     {
-        CLOSE(prof->node.match[0], 2.77993);
-        CLOSE(prof->node.match[prof->symbols_size - 1], 2.88211);
-        CLOSE(prof->node.insert[0], 2.68618);
-        CLOSE(prof->node.insert[prof->symbols_size - 1], 3.61503);
-        CLOSE(prof->node.trans[0], 0.01335);
-        CLOSE(prof->node.trans[HMR_TRANS_SIZE - 1], 0.95510);
+        CLOSE(prof->node.match[0], -2.77993);
+        CLOSE(prof->node.match[prof->symbols_size - 1], -2.88211);
+        CLOSE(prof->node.insert[0], -2.68618);
+        CLOSE(prof->node.insert[prof->symbols_size - 1], -3.61503);
+        CLOSE(prof->node.trans[0], -0.01335);
+        CLOSE(prof->node.trans[HMR_TRANS_SIZE - 1], -0.95510);
     }
     if (prof->node.idx == 449)
     {
-        CLOSE(prof->node.match[0], 3.39753);
-        CLOSE(prof->node.match[prof->symbols_size - 1], 4.58563);
-        CLOSE(prof->node.insert[0], 2.68618);
-        CLOSE(prof->node.insert[prof->symbols_size - 1], 3.61503);
-        CLOSE(prof->node.trans[0], 0.00900);
-        CLOSE(prof->node.trans[2], NAN);
+        CLOSE(prof->node.match[0], -3.39753);
+        CLOSE(prof->node.match[prof->symbols_size - 1], -4.58563);
+        CLOSE(prof->node.insert[0], -2.68618);
+        CLOSE(prof->node.insert[prof->symbols_size - 1], -3.61503);
+        CLOSE(prof->node.trans[0], -0.00900);
+        CLOSE(prof->node.trans[2], -INFINITY);
         CLOSE(prof->node.trans[HMR_TRANS_SIZE - 2], 0.0);
-        CLOSE(prof->node.trans[HMR_TRANS_SIZE - 1], NAN);
+        CLOSE(prof->node.trans[HMR_TRANS_SIZE - 1], -INFINITY);
     }
 }

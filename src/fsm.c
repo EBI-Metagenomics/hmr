@@ -31,8 +31,10 @@ struct trans
     enum hmr_rc (*action)(struct args *a);
 };
 
-static char const arrows[HMR_TRANS_SIZE][6] = {"m->m", "m->i", "m->d", "i->m",
-                                               "i->i", "d->m", "d->d"};
+static char const arrows[HMR_TRANS_SIZE][5] = {
+    [HMR_TRANS_MM] = "m->m", [HMR_TRANS_MI] = "m->i", [HMR_TRANS_MD] = "m->d",
+    [HMR_TRANS_IM] = "i->m", [HMR_TRANS_II] = "i->i", [HMR_TRANS_DM] = "d->m",
+    [HMR_TRANS_DD] = "d->d"};
 
 static enum hmr_rc nop(struct args *a) { return HMR_SUCCESS; }
 
@@ -82,6 +84,8 @@ static enum hmr_rc match(struct args *a);
 static enum hmr_rc trans(struct args *a);
 
 static enum hmr_rc to_double(char const *str, double *val);
+
+static enum hmr_rc to_lprob(char const *str, double *val);
 
 static enum hmr_rc check_header(struct hmr_prof *prof);
 
@@ -334,7 +338,7 @@ static enum hmr_rc compo(struct args *a)
         if (a->aux->idx >= a->prof->symbols_size)
             return error_parse(a->tok, "too many compo numbers");
 
-        if (to_double(a->tok->value, a->prof->node.compo + a->aux->idx++))
+        if (to_lprob(a->tok->value, a->prof->node.compo + a->aux->idx++))
             return error_parse(a->tok, DEC_ERROR);
     }
     else
@@ -355,7 +359,7 @@ static enum hmr_rc insert(struct args *a)
         if (a->aux->idx >= a->prof->symbols_size)
             return error_parse(a->tok, "too many insert numbers");
 
-        if (to_double(a->tok->value, a->prof->node.insert + a->aux->idx++))
+        if (to_lprob(a->tok->value, a->prof->node.insert + a->aux->idx++))
             return error_parse(a->tok, DEC_ERROR);
     }
     else
@@ -390,7 +394,7 @@ static enum hmr_rc match(struct args *a)
             a->aux->idx++;
             return HMR_SUCCESS;
         }
-        if (to_double(a->tok->value, a->prof->node.match + a->aux->idx++))
+        if (to_lprob(a->tok->value, a->prof->node.match + a->aux->idx++))
             return error_parse(a->tok, DEC_ERROR);
     }
     else
@@ -410,7 +414,7 @@ static enum hmr_rc trans(struct args *a)
         if (a->aux->idx >= HMR_TRANS_SIZE)
             return error_parse(a->tok, "too many trans numbers");
 
-        if (to_double(a->tok->value, a->prof->node.trans + a->aux->idx++))
+        if (to_lprob(a->tok->value, a->prof->node.trans + a->aux->idx++))
             return error_parse(a->tok, DEC_ERROR);
     }
     else
@@ -427,7 +431,7 @@ static enum hmr_rc to_double(char const *str, double *val)
 {
     if (str[0] == '*' && str[1] == '\0')
     {
-        *val = NAN;
+        *val = INFINITY;
         return HMR_SUCCESS;
     }
     char *ptr = NULL;
@@ -439,6 +443,15 @@ static enum hmr_rc to_double(char const *str, double *val)
     if (strchr(str, '\0') != ptr)
         return HMR_PARSEERROR;
 
+    return HMR_SUCCESS;
+}
+
+static enum hmr_rc to_lprob(char const *str, double *val)
+{
+    enum hmr_rc rc = to_double(str, val);
+    if (rc)
+        return rc;
+    *val = -(*val);
     return HMR_SUCCESS;
 }
 
