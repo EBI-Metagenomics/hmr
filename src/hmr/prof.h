@@ -6,6 +6,14 @@
 #include "hmr/rc.h"
 #include <stdio.h>
 
+#define HMR_HEADER_MAX 64
+#define HMR_NAME_MAX 64
+#define HMR_ACC_MAX 64
+#define HMR_DESC_MAX 128
+#define HMR_LENG_MAX 8
+#define HMR_ALPH_MAX 12
+#define HMR_BUFF_MAX 128
+
 struct hmr;
 
 struct hmr_prof

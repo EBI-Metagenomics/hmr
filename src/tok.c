@@ -13,11 +13,11 @@ static enum hmr_rc next_line(FILE *restrict fd, char error[HMR_ERROR_SIZE],
 void tok_init(struct hmr_tok *tok, char *error)
 {
     tok->id = HMR_TOK_NEWLINE;
-    memset(tok->line, '\0', HMR_TOK_LINE_MAX);
-    tok->line_number = 0;
-    tok->consumed_line = true;
-    tok->ptr = NULL;
-    tok->value = tok->line;
+    tok->value = tok->line.data;
+    memset(tok->line.data, '\0', HMR_TOK_LINE_MAX);
+    tok->line.number = 0;
+    tok->line.consumed = true;
+    tok->line.ctx = NULL;
     tok->error = error;
 }
 
@@ -25,27 +25,27 @@ enum hmr_rc tok_next(FILE *restrict fd, struct hmr_tok *tok)
 {
     enum hmr_rc rc = HMR_SUCCESS;
 
-    if (tok->consumed_line)
+    if (tok->line.consumed)
     {
-        if ((rc = next_line(fd, tok->error, tok->line)))
+        if ((rc = next_line(fd, tok->error, tok->line.data)))
         {
             if (rc == HMR_ENDFILE)
             {
                 tok->value = NULL;
                 tok->id = HMR_TOK_EOF;
-                tok->line[0] = '\0';
+                tok->line.data[0] = '\0';
                 return HMR_SUCCESS;
             }
             return rc;
         }
-        tok->value = strtok_r(tok->line, DELIM, &tok->ptr);
-        tok->line_number++;
+        tok->value = strtok_r(tok->line.data, DELIM, &tok->line.ctx);
+        tok->line.number++;
 
         if (!tok->value)
             return HMR_PARSEERROR;
     }
     else
-        tok->value = strtok_r(NULL, DELIM, &tok->ptr);
+        tok->value = strtok_r(NULL, DELIM, &tok->line.ctx);
 
     if (!strcmp(tok->value, "\n"))
         tok->id = HMR_TOK_NEWLINE;
@@ -58,7 +58,7 @@ enum hmr_rc tok_next(FILE *restrict fd, struct hmr_tok *tok)
     else
         tok->id = HMR_TOK_WORD;
 
-    tok->consumed_line = tok->id == HMR_TOK_NEWLINE;
+    tok->line.consumed = tok->id == HMR_TOK_NEWLINE;
 
     return HMR_SUCCESS;
 }

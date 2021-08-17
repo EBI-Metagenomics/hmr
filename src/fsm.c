@@ -10,6 +10,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define HMR_MATCH_EXCESS_SIZE 5
+
 #define XSTR(s) STR(s)
 #define STR(s) #s
 

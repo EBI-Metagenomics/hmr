@@ -2,7 +2,6 @@
 #define HMR_TOK_H
 
 #include <stdbool.h>
-#include <string.h>
 
 enum hmr_tok_id
 {
@@ -19,11 +18,14 @@ enum hmr_tok_id
 struct hmr_tok
 {
     enum hmr_tok_id id;
-    char line[HMR_TOK_LINE_MAX];
-    unsigned line_number;
-    bool consumed_line;
-    char *ptr;
     char const *value;
+    struct
+    {
+        char data[HMR_TOK_LINE_MAX];
+        unsigned number;
+        bool consumed;
+        char *ctx;
+    } line;
     char *error;
 };
 

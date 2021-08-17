@@ -5,6 +5,7 @@
 #include "hmr/prof.h"
 #include "hmr/tok.h"
 #include <stdarg.h>
+#include <string.h>
 
 #define PARSE_ERROR "Parse error: "
 #define RUNTIME_ERROR "Runtime error: "
@@ -64,6 +65,6 @@ enum hmr_rc __error_parse_tok(struct hmr_tok *tok, char const *fmt, ...)
     n += copy_ap(HMR_ERROR_SIZE - n, tok->error + n, fmt, ap);
     va_end(ap);
     copy_fmt(HMR_ERROR_SIZE - n, tok->error + n, "%s %d", LINE,
-             tok->line_number);
+             tok->line.number);
     return HMR_PARSEERROR;
 }
