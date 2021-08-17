@@ -20,14 +20,14 @@
 struct args
 {
     struct hmr_tok *tok;
-    enum hmr_fsm_state state;
+    enum hmr_state state;
     struct hmr_aux *aux;
     struct hmr_prof *prof;
 };
 
 struct trans
 {
-    enum hmr_fsm_state const next;
+    enum hmr_state const next;
     enum hmr_rc (*action)(struct args *a);
 };
 
@@ -172,8 +172,8 @@ static char state_name[][10] = {
     [HMR_FSM_END] = "END",       [HMR_FSM_ERROR] = "ERROR",
 };
 
-enum hmr_fsm_state fsm_next(enum hmr_fsm_state state, struct hmr_tok *tok,
-                            struct hmr_aux *aux, struct hmr_prof *prof)
+enum hmr_state fsm_next(enum hmr_state state, struct hmr_tok *tok,
+                        struct hmr_aux *aux, struct hmr_prof *prof)
 {
     unsigned row = (unsigned)state;
     unsigned col = (unsigned)tok->id;
@@ -184,7 +184,7 @@ enum hmr_fsm_state fsm_next(enum hmr_fsm_state state, struct hmr_tok *tok,
     return t->next;
 }
 
-char const *fsm_name(enum hmr_fsm_state state) { return state_name[state]; }
+char const *fsm_name(enum hmr_state state) { return state_name[state]; }
 
 static enum hmr_rc arrow(struct args *a)
 {

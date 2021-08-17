@@ -21,7 +21,7 @@ void tok_init(struct hmr_tok *tok, char *error)
     tok->error = error;
 }
 
-enum hmr_rc tok_next(FILE *restrict fd, struct hmr_tok *tok)
+enum hmr_rc tok_next(struct hmr_tok *tok, FILE *restrict fd)
 {
     enum hmr_rc rc = HMR_SUCCESS;
 

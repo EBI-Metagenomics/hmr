@@ -1,7 +1,7 @@
-#ifndef HMR_FSM_H
-#define HMR_FSM_H
+#ifndef HMR_STATE_H
+#define HMR_STATE_H
 
-enum hmr_fsm_state
+enum hmr_state
 {
     HMR_FSM_BEGIN = 0,
     HMR_FSM_HEADER,

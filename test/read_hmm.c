@@ -44,9 +44,7 @@ void test_hmm_3profs(void)
     unsigned symbol_size = 20;
     unsigned prof_size[] = {40, 235, 449};
 
-    HMR_DECLARE(hmr);
-
-    EQ(hmr_open(&hmr, fd), HMR_SUCCESS);
+    HMR_DECLARE(hmr, fd);
 
     HMR_PROF_DECLARE(prof, &hmr);
 
@@ -68,8 +66,6 @@ void test_hmm_3profs(void)
     }
     EQ(prof_idx, 3);
 
-    hmr_close(&hmr);
-
     fclose(fd);
 }
 
@@ -78,17 +74,13 @@ void test_hmm_empty(void)
     FILE *fd = fopen(ASSETS "/empty.hmm", "r");
     NOTNULL(fd);
 
-    HMR_DECLARE(hmr);
-
-    EQ(hmr_open(&hmr, fd), HMR_SUCCESS);
+    HMR_DECLARE(hmr, fd);
 
     HMR_PROF_DECLARE(prof, &hmr);
 
     EQ(hmr_next_prof(&hmr, &prof), HMR_ENDFILE);
     EQ(hmr_next_prof(&hmr, &prof), HMR_RUNTIMEERROR);
     EQ(hmr.error, "Runtime error: unexpected prof_next_prof call");
-
-    hmr_close(&hmr);
 
     fclose(fd);
 }
@@ -98,9 +90,7 @@ void test_hmm_corrupted1(void)
     FILE *fd = fopen(ASSETS "/corrupted1.hmm", "r");
     NOTNULL(fd);
 
-    HMR_DECLARE(hmr);
-
-    EQ(hmr_open(&hmr, fd), HMR_SUCCESS);
+    HMR_DECLARE(hmr, fd);
 
     HMR_PROF_DECLARE(prof, &hmr);
 
@@ -125,8 +115,6 @@ void test_hmm_corrupted1(void)
     EQ(prof_idx, 3);
     EQ(rc, HMR_RUNTIMEERROR);
 
-    hmr_close(&hmr);
-
     fclose(fd);
 }
 
@@ -136,9 +124,7 @@ void test_hmm_corrupted2(void)
     NOTNULL(fd);
     unsigned prof_size[] = {40};
 
-    HMR_DECLARE(hmr);
-
-    EQ(hmr_open(&hmr, fd), HMR_SUCCESS);
+    HMR_DECLARE(hmr, fd);
 
     HMR_PROF_DECLARE(prof, &hmr);
 
@@ -160,8 +146,6 @@ void test_hmm_corrupted2(void)
     EQ(rc, HMR_PARSEERROR);
     EQ(hmr.error, "Parse error: expected content before end-of-line: line 153");
 
-    hmr_close(&hmr);
-
     fclose(fd);
 }
 
@@ -171,9 +155,7 @@ void test_hmm_corrupted3(void)
     NOTNULL(fd);
     unsigned prof_size[] = {40};
 
-    HMR_DECLARE(hmr);
-
-    EQ(hmr_open(&hmr, fd), HMR_SUCCESS);
+    HMR_DECLARE(hmr, fd);
 
     HMR_PROF_DECLARE(prof, &hmr);
 
@@ -194,8 +176,6 @@ void test_hmm_corrupted3(void)
     EQ(rc, HMR_PARSEERROR);
     EQ(hmr.error, "Parse error: missing LENG field");
 
-    hmr_close(&hmr);
-
     fclose(fd);
 }
 
@@ -204,9 +184,7 @@ void test_hmm_corrupted4(void)
     FILE *fd = fopen(ASSETS "/corrupted4.hmm", "r");
     NOTNULL(fd);
 
-    HMR_DECLARE(hmr);
-
-    EQ(hmr_open(&hmr, fd), HMR_SUCCESS);
+    HMR_DECLARE(hmr, fd);
 
     HMR_PROF_DECLARE(prof, &hmr);
 
@@ -229,8 +207,6 @@ void test_hmm_corrupted4(void)
     EQ(prof_idx, 1);
     EQ(rc, HMR_ENDFILE);
 
-    hmr_close(&hmr);
-
     fclose(fd);
 }
 
@@ -239,9 +215,7 @@ void test_hmm_corrupted5(void)
     FILE *fd = fopen(ASSETS "/corrupted5.hmm", "r");
     NOTNULL(fd);
 
-    HMR_DECLARE(hmr);
-
-    EQ(hmr_open(&hmr, fd), HMR_SUCCESS);
+    HMR_DECLARE(hmr, fd);
 
     HMR_PROF_DECLARE(prof, &hmr);
 
@@ -253,8 +227,6 @@ void test_hmm_corrupted5(void)
     EQ(rc, HMR_RUNTIMEERROR);
     EQ(hmr.error, "Runtime error: unexpected prof_next_node call");
 
-    hmr_close(&hmr);
-
     fclose(fd);
 }
 
@@ -263,9 +235,7 @@ void test_hmm_corrupted6(void)
     FILE *fd = fopen(ASSETS "/corrupted6.hmm", "r");
     NOTNULL(fd);
 
-    HMR_DECLARE(hmr);
-
-    EQ(hmr_open(&hmr, fd), HMR_SUCCESS);
+    HMR_DECLARE(hmr, fd);
 
     HMR_PROF_DECLARE(prof, &hmr);
 
@@ -276,8 +246,6 @@ void test_hmm_corrupted6(void)
     EQ(rc, HMR_PARSEERROR);
     EQ(hmr.error, "Parse error: failed to parse decimal number: line 25");
 
-    hmr_close(&hmr);
-
     fclose(fd);
 }
 
@@ -286,9 +254,7 @@ void test_hmm_corrupted7(void)
     FILE *fd = fopen(ASSETS "/corrupted7.hmm", "r");
     NOTNULL(fd);
 
-    HMR_DECLARE(hmr);
-
-    EQ(hmr_open(&hmr, fd), HMR_SUCCESS);
+    HMR_DECLARE(hmr, fd);
 
     HMR_PROF_DECLARE(prof, &hmr);
 
@@ -300,8 +266,6 @@ void test_hmm_corrupted7(void)
     EQ(rc, HMR_RUNTIMEERROR);
     EQ(hmr.error, "Runtime error: unexpected prof_next_node call");
 
-    hmr_close(&hmr);
-
     fclose(fd);
 }
 
@@ -310,9 +274,7 @@ void test_hmm_corrupted8(void)
     FILE *fd = fopen(ASSETS "/corrupted8.hmm", "r");
     NOTNULL(fd);
 
-    HMR_DECLARE(hmr);
-
-    EQ(hmr_open(&hmr, fd), HMR_SUCCESS);
+    HMR_DECLARE(hmr, fd);
 
     HMR_PROF_DECLARE(prof, &hmr);
 
@@ -323,8 +285,6 @@ void test_hmm_corrupted8(void)
     rc = hmr_next_node(&hmr, &prof);
     EQ(rc, HMR_RUNTIMEERROR);
     EQ(hmr.error, "Runtime error: unexpected prof_next_node call");
-
-    hmr_close(&hmr);
 
     fclose(fd);
 }

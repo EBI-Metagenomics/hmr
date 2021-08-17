@@ -1,8 +1,8 @@
 #include "hmr/prof.h"
+#include "aux.h"
 #include "bug.h"
 #include "error.h"
 #include "fsm.h"
-#include "hmr.h"
 #include "hmr/hmr.h"
 #include "hmr/tok.h"
 #include "node.h"
@@ -48,7 +48,7 @@ void prof_init(struct hmr_prof *prof, char *error)
 }
 
 enum hmr_rc prof_next_node(struct hmr_prof *prof, FILE *restrict fd,
-                           struct hmr_aux *aux, enum hmr_fsm_state *state,
+                           struct hmr_aux *aux, enum hmr_state *state,
                            struct hmr_tok *tok)
 {
     if (*state != HMR_FSM_PAUSE)
@@ -58,7 +58,7 @@ enum hmr_rc prof_next_node(struct hmr_prof *prof, FILE *restrict fd,
     do
     {
         enum hmr_rc rc = HMR_SUCCESS;
-        if ((rc = tok_next(fd, tok)))
+        if ((rc = tok_next(tok, fd)))
             return rc;
 
         *state = fsm_next(*state, tok, aux, prof);
@@ -79,7 +79,7 @@ enum hmr_rc prof_next_node(struct hmr_prof *prof, FILE *restrict fd,
 }
 
 enum hmr_rc prof_next_prof(struct hmr_prof *prof, FILE *restrict fd,
-                           struct hmr_aux *aux, enum hmr_fsm_state *state,
+                           struct hmr_aux *aux, enum hmr_state *state,
                            struct hmr_tok *tok)
 {
     if (*state != HMR_FSM_BEGIN)
@@ -90,7 +90,7 @@ enum hmr_rc prof_next_prof(struct hmr_prof *prof, FILE *restrict fd,
     do
     {
         enum hmr_rc rc = HMR_SUCCESS;
-        if ((rc = tok_next(fd, tok)))
+        if ((rc = tok_next(tok, fd)))
             return rc;
 
         if ((*state = fsm_next(*state, tok, aux, prof)) == HMR_FSM_ERROR)
