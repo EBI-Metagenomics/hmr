@@ -1,7 +1,7 @@
 *-build-*/
 
-Debug/
-Release/
+*Debug/
+*Release/
 
 # Prerequisites
 *.d

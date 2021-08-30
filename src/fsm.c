@@ -5,6 +5,7 @@
 #include "hmr/aux.h"
 #include "hmr/prof.h"
 #include "hmr/tok.h"
+#include "hmr/trans.h"
 #include "tok.h"
 #include <math.h>
 #include <stdlib.h>

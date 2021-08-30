@@ -1,6 +1,6 @@
 #include "error.h"
 #include "aux.h"
-#include "die.h"
+#include "bug.h"
 #include "hmr/aux.h"
 #include "hmr/prof.h"
 #include "hmr/tok.h"
@@ -11,29 +11,27 @@
 #define RUNTIME_ERROR "Runtime error: "
 #define LINE ": line"
 
-static inline int copy_fmt(int dst_size, char *dst, char const *fmt, ...)
+static int copy_fmt(int dst_size, char *dst, char const *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
     int n = vsnprintf(dst, dst_size, fmt, ap);
     va_end(ap);
-    if (n < 0)
-        die();
+    BUG(n < 0);
     return n;
 }
 
-static inline int copy_ap(int dst_size, char *dst, char const *fmt, va_list ap)
+static int copy_ap(int dst_size, char *dst, char const *fmt, va_list ap)
 {
     int n = vsnprintf(dst, dst_size, fmt, ap);
-    if (n < 0)
-        die();
+    BUG(n < 0);
     return n;
 }
 
 enum hmr_rc error_io(char *dst, int errnum)
 {
-    if (strerror_r(errnum, dst, HMR_ERROR_SIZE))
-        die();
+    int rc = strerror_r(errnum, dst, HMR_ERROR_SIZE);
+    BUG(rc);
     return HMR_IOERROR;
 }
 

@@ -23,7 +23,6 @@ add_library(
   src/fsm.c
   src/hmr.c
   src/node.c
-  src/die.c
   src/prof.c
   src/tok.c)
 add_library(HMR::hmr ALIAS hmr)
