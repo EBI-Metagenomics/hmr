@@ -12,7 +12,7 @@ static enum hmr_rc next_line(FILE *restrict fd, char error[HMR_ERROR_SIZE],
 
 void tok_init(struct hmr_tok *tok, char *error)
 {
-    tok->id = HMR_TOK_NEWLINE;
+    tok->id = HMR_TOK_NL;
     tok->value = tok->line.data;
     memset(tok->line.data, '\0', HMR_TOK_LINE_MAX);
     tok->line.number = 0;
@@ -48,7 +48,7 @@ enum hmr_rc tok_next(struct hmr_tok *tok, FILE *restrict fd)
         tok->value = strtok_r(NULL, DELIM, &tok->line.ctx);
 
     if (!strcmp(tok->value, "\n"))
-        tok->id = HMR_TOK_NEWLINE;
+        tok->id = HMR_TOK_NL;
     else if (!strcmp(tok->value, "//"))
         tok->id = HMR_TOK_SLASH;
     else if (!strcmp(tok->value, "HMM"))
@@ -58,7 +58,7 @@ enum hmr_rc tok_next(struct hmr_tok *tok, FILE *restrict fd)
     else
         tok->id = HMR_TOK_WORD;
 
-    tok->line.consumed = tok->id == HMR_TOK_NEWLINE;
+    tok->line.consumed = tok->id == HMR_TOK_NL;
 
     return HMR_SUCCESS;
 }

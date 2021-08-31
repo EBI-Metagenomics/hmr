@@ -56,12 +56,12 @@ static enum hmr_rc unexpect_symbol(struct args *a)
     return error_parse(a->tok, "unexpected symbol");
 }
 
-static enum hmr_rc unexpect_token(struct args *a)
+static enum hmr_rc unexpect_tok(struct args *a)
 {
     return error_parse(a->tok, "unexpected token");
 }
 
-static enum hmr_rc unexpect_newline(struct args *a)
+static enum hmr_rc unexpect_nl(struct args *a)
 {
     return error_parse(a->tok, "unexpected newline");
 }
@@ -94,76 +94,76 @@ static enum hmr_rc check_required_metadata(struct hmr_prof *prof);
 
 static struct trans const transition[][6] = {
     [HMR_FSM_BEGIN] = {[HMR_TOK_WORD] = {HMR_FSM_HEADER, &header},
-                       [HMR_TOK_NEWLINE] = {HMR_FSM_BEGIN, &nop},
+                       [HMR_TOK_NL] = {HMR_FSM_BEGIN, &nop},
                        [HMR_TOK_HMM] = {HMR_FSM_ERROR, &header},
                        [HMR_TOK_COMPO] = {HMR_FSM_ERROR, &header},
                        [HMR_TOK_SLASH] = {HMR_FSM_ERROR, &header},
                        [HMR_TOK_EOF] = {HMR_FSM_END, &nop}},
     [HMR_FSM_HEADER] = {[HMR_TOK_WORD] = {HMR_FSM_HEADER, &header},
-                        [HMR_TOK_NEWLINE] = {HMR_FSM_NAME, &header},
+                        [HMR_TOK_NL] = {HMR_FSM_NAME, &header},
                         [HMR_TOK_HMM] = {HMR_FSM_ERROR, &header},
                         [HMR_TOK_COMPO] = {HMR_FSM_ERROR, &header},
                         [HMR_TOK_SLASH] = {HMR_FSM_ERROR, &header},
                         [HMR_TOK_EOF] = {HMR_FSM_ERROR, &unexpect_eof}},
     [HMR_FSM_NAME] = {[HMR_TOK_WORD] = {HMR_FSM_CONTENT, &field_name},
-                      [HMR_TOK_NEWLINE] = {HMR_FSM_ERROR, &unexpect_newline},
+                      [HMR_TOK_NL] = {HMR_FSM_ERROR, &unexpect_nl},
                       [HMR_TOK_HMM] = {HMR_FSM_SYMBOL, &hmm},
                       [HMR_TOK_COMPO] = {HMR_FSM_PAUSE, &nop},
-                      [HMR_TOK_SLASH] = {HMR_FSM_ERROR, &unexpect_token},
+                      [HMR_TOK_SLASH] = {HMR_FSM_ERROR, &unexpect_tok},
                       [HMR_TOK_EOF] = {HMR_FSM_ERROR, &unexpect_eof}},
     [HMR_FSM_CONTENT] = {[HMR_TOK_WORD] = {HMR_FSM_CONTENT, &field_content},
-                         [HMR_TOK_NEWLINE] = {HMR_FSM_NAME, &field_content},
+                         [HMR_TOK_NL] = {HMR_FSM_NAME, &field_content},
                          [HMR_TOK_HMM] = {HMR_FSM_CONTENT, &field_content},
-                         [HMR_TOK_COMPO] = {HMR_FSM_ERROR, &unexpect_token},
-                         [HMR_TOK_SLASH] = {HMR_FSM_ERROR, &unexpect_token},
+                         [HMR_TOK_COMPO] = {HMR_FSM_ERROR, &unexpect_tok},
+                         [HMR_TOK_SLASH] = {HMR_FSM_ERROR, &unexpect_tok},
                          [HMR_TOK_EOF] = {HMR_FSM_ERROR, &unexpect_eof}},
     [HMR_FSM_SYMBOL] = {[HMR_TOK_WORD] = {HMR_FSM_SYMBOL, &symbol},
-                        [HMR_TOK_NEWLINE] = {HMR_FSM_ARROW, &symbol},
+                        [HMR_TOK_NL] = {HMR_FSM_ARROW, &symbol},
                         [HMR_TOK_HMM] = {HMR_FSM_ERROR, &unexpect_symbol},
                         [HMR_TOK_COMPO] = {HMR_FSM_ERROR, &unexpect_symbol},
                         [HMR_TOK_SLASH] = {HMR_FSM_ERROR, &unexpect_symbol},
                         [HMR_TOK_EOF] = {HMR_FSM_ERROR, &unexpect_eof}},
     [HMR_FSM_ARROW] = {[HMR_TOK_WORD] = {HMR_FSM_ARROW, &arrow},
-                       [HMR_TOK_NEWLINE] = {HMR_FSM_PAUSE, &arrow},
-                       [HMR_TOK_HMM] = {HMR_FSM_ERROR, &unexpect_token},
-                       [HMR_TOK_COMPO] = {HMR_FSM_ERROR, &unexpect_token},
-                       [HMR_TOK_SLASH] = {HMR_FSM_ERROR, &unexpect_token},
+                       [HMR_TOK_NL] = {HMR_FSM_PAUSE, &arrow},
+                       [HMR_TOK_HMM] = {HMR_FSM_ERROR, &unexpect_tok},
+                       [HMR_TOK_COMPO] = {HMR_FSM_ERROR, &unexpect_tok},
+                       [HMR_TOK_SLASH] = {HMR_FSM_ERROR, &unexpect_tok},
                        [HMR_TOK_EOF] = {HMR_FSM_ERROR, &unexpect_eof}},
     [HMR_FSM_COMPO] = {[HMR_TOK_WORD] = {HMR_FSM_COMPO, &compo},
-                       [HMR_TOK_NEWLINE] = {HMR_FSM_INSERT, &compo},
+                       [HMR_TOK_NL] = {HMR_FSM_INSERT, &compo},
                        [HMR_TOK_HMM] = {HMR_FSM_ERROR, &unexpect_eon},
                        [HMR_TOK_COMPO] = {HMR_FSM_ERROR, &unexpect_eon},
                        [HMR_TOK_SLASH] = {HMR_FSM_ERROR, &unexpect_eon},
                        [HMR_TOK_EOF] = {HMR_FSM_ERROR, &unexpect_eof}},
     [HMR_FSM_INSERT] = {[HMR_TOK_WORD] = {HMR_FSM_INSERT, &insert},
-                        [HMR_TOK_NEWLINE] = {HMR_FSM_TRANS, &insert},
+                        [HMR_TOK_NL] = {HMR_FSM_TRANS, &insert},
                         [HMR_TOK_HMM] = {HMR_FSM_ERROR, &unexpect_eon},
                         [HMR_TOK_COMPO] = {HMR_FSM_ERROR, &unexpect_eon},
                         [HMR_TOK_SLASH] = {HMR_FSM_ERROR, &unexpect_eon},
                         [HMR_TOK_EOF] = {HMR_FSM_ERROR, &unexpect_eof}},
     [HMR_FSM_MATCH] = {[HMR_TOK_WORD] = {HMR_FSM_MATCH, &match},
-                       [HMR_TOK_NEWLINE] = {HMR_FSM_INSERT, &match},
+                       [HMR_TOK_NL] = {HMR_FSM_INSERT, &match},
                        [HMR_TOK_HMM] = {HMR_FSM_ERROR, &unexpect_eon},
                        [HMR_TOK_COMPO] = {HMR_FSM_ERROR, &unexpect_eon},
                        [HMR_TOK_SLASH] = {HMR_FSM_ERROR, &unexpect_eon},
                        [HMR_TOK_EOF] = {HMR_FSM_ERROR, &unexpect_eof}},
     [HMR_FSM_TRANS] = {[HMR_TOK_WORD] = {HMR_FSM_TRANS, &trans},
-                       [HMR_TOK_NEWLINE] = {HMR_FSM_PAUSE, &trans},
+                       [HMR_TOK_NL] = {HMR_FSM_PAUSE, &trans},
                        [HMR_TOK_HMM] = {HMR_FSM_ERROR, &unexpect_eon},
                        [HMR_TOK_COMPO] = {HMR_FSM_ERROR, &unexpect_eon},
                        [HMR_TOK_SLASH] = {HMR_FSM_ERROR, &unexpect_eon},
                        [HMR_TOK_EOF] = {HMR_FSM_ERROR, &unexpect_eof}},
     [HMR_FSM_PAUSE] = {[HMR_TOK_WORD] = {HMR_FSM_MATCH, &match},
-                       [HMR_TOK_NEWLINE] = {HMR_FSM_ERROR, &unexpect_newline},
-                       [HMR_TOK_HMM] = {HMR_FSM_ERROR, &unexpect_token},
+                       [HMR_TOK_NL] = {HMR_FSM_ERROR, &unexpect_nl},
+                       [HMR_TOK_HMM] = {HMR_FSM_ERROR, &unexpect_tok},
                        [HMR_TOK_COMPO] = {HMR_FSM_COMPO, &nop},
                        [HMR_TOK_SLASH] = {HMR_FSM_SLASHED, &nop},
                        [HMR_TOK_EOF] = {HMR_FSM_ERROR, &unexpect_eof}},
-    [HMR_FSM_SLASHED] = {[HMR_TOK_WORD] = {HMR_FSM_ERROR, &unexpect_token},
-                         [HMR_TOK_NEWLINE] = {HMR_FSM_BEGIN, &nop},
-                         [HMR_TOK_HMM] = {HMR_FSM_ERROR, &unexpect_token},
-                         [HMR_TOK_COMPO] = {HMR_FSM_ERROR, &unexpect_token},
-                         [HMR_TOK_SLASH] = {HMR_FSM_ERROR, &unexpect_token},
+    [HMR_FSM_SLASHED] = {[HMR_TOK_WORD] = {HMR_FSM_ERROR, &unexpect_tok},
+                         [HMR_TOK_NL] = {HMR_FSM_BEGIN, &nop},
+                         [HMR_TOK_HMM] = {HMR_FSM_ERROR, &unexpect_tok},
+                         [HMR_TOK_COMPO] = {HMR_FSM_ERROR, &unexpect_tok},
+                         [HMR_TOK_SLASH] = {HMR_FSM_ERROR, &unexpect_tok},
                          [HMR_TOK_EOF] = {HMR_FSM_ERROR, &unexpect_eof}},
 };
 
@@ -193,11 +193,11 @@ char const *fsm_name(enum hmr_state state) { return state_name[state]; }
 
 static enum hmr_rc arrow(struct args *a)
 {
-    BUG(a->tok->id != HMR_TOK_WORD && a->tok->id != HMR_TOK_NEWLINE);
+    BUG(a->tok->id != HMR_TOK_WORD && a->tok->id != HMR_TOK_NL);
     if (a->tok->id == HMR_TOK_WORD)
     {
         if (a->aux->idx >= HMR_TRANS_SIZE)
-            return unexpect_token(a);
+            return unexpect_tok(a);
 
         if (strcmp(a->tok->value, arrows[a->aux->idx]))
             return error_parse(a->tok, "expected %s", arrows[a->aux->idx]);
@@ -214,7 +214,7 @@ static enum hmr_rc arrow(struct args *a)
 
 static enum hmr_rc header(struct args *a)
 {
-    BUG(a->tok->id != HMR_TOK_WORD && a->tok->id != HMR_TOK_NEWLINE);
+    BUG(a->tok->id != HMR_TOK_WORD && a->tok->id != HMR_TOK_NL);
     if (a->tok->id == HMR_TOK_WORD)
     {
         if (a->aux->prof.pos > a->aux->prof.begin + 1)
@@ -281,7 +281,7 @@ static enum hmr_rc field_name(struct args *a)
 static enum hmr_rc field_content(struct args *a)
 {
     BUG(a->tok->id != HMR_TOK_WORD && a->tok->id != HMR_TOK_HMM &&
-        a->tok->id != HMR_TOK_COMPO && a->tok->id != HMR_TOK_NEWLINE);
+        a->tok->id != HMR_TOK_COMPO && a->tok->id != HMR_TOK_NL);
 
     if (a->tok->id == HMR_TOK_WORD || a->tok->id == HMR_TOK_HMM ||
         a->tok->id == HMR_TOK_COMPO)
@@ -315,7 +315,7 @@ static enum hmr_rc hmm(struct args *a)
 
 static enum hmr_rc symbol(struct args *a)
 {
-    BUG(a->tok->id != HMR_TOK_WORD && a->tok->id != HMR_TOK_NEWLINE);
+    BUG(a->tok->id != HMR_TOK_WORD && a->tok->id != HMR_TOK_NL);
     if (a->tok->id == HMR_TOK_WORD)
     {
         *(a->aux->prof.pos - 1) = *a->tok->value;
@@ -333,7 +333,7 @@ static enum hmr_rc symbol(struct args *a)
 
 static enum hmr_rc compo(struct args *a)
 {
-    BUG(a->tok->id != HMR_TOK_WORD && a->tok->id != HMR_TOK_NEWLINE);
+    BUG(a->tok->id != HMR_TOK_WORD && a->tok->id != HMR_TOK_NL);
     if (a->tok->id == HMR_TOK_WORD)
     {
         if (a->aux->idx >= a->prof->symbols_size)
@@ -354,7 +354,7 @@ static enum hmr_rc compo(struct args *a)
 
 static enum hmr_rc insert(struct args *a)
 {
-    BUG(a->tok->id != HMR_TOK_WORD && a->tok->id != HMR_TOK_NEWLINE);
+    BUG(a->tok->id != HMR_TOK_WORD && a->tok->id != HMR_TOK_NL);
     if (a->tok->id == HMR_TOK_WORD)
     {
         if (a->aux->idx >= a->prof->symbols_size)
@@ -375,7 +375,7 @@ static enum hmr_rc insert(struct args *a)
 
 static enum hmr_rc match(struct args *a)
 {
-    BUG(a->tok->id != HMR_TOK_WORD && a->tok->id != HMR_TOK_NEWLINE);
+    BUG(a->tok->id != HMR_TOK_WORD && a->tok->id != HMR_TOK_NL);
     if (a->tok->id == HMR_TOK_WORD)
     {
         if (a->state == HMR_FSM_PAUSE)
@@ -409,7 +409,7 @@ static enum hmr_rc match(struct args *a)
 
 static enum hmr_rc trans(struct args *a)
 {
-    BUG(a->tok->id != HMR_TOK_WORD && a->tok->id != HMR_TOK_NEWLINE);
+    BUG(a->tok->id != HMR_TOK_WORD && a->tok->id != HMR_TOK_NL);
     if (a->tok->id == HMR_TOK_WORD)
     {
         if (a->aux->idx >= HMR_TRANS_SIZE)

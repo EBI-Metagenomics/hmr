@@ -5,7 +5,7 @@
 
 enum hmr_tok_id
 {
-    HMR_TOK_NEWLINE = 0,
+    HMR_TOK_NL,
     HMR_TOK_WORD,
     HMR_TOK_HMM,
     HMR_TOK_COMPO,

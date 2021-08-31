@@ -3,7 +3,7 @@
 
 enum hmr_rc
 {
-    HMR_SUCCESS = 0,
+    HMR_SUCCESS,
     HMR_ENDNODE,
     HMR_ENDFILE,
     HMR_IOERROR,

@@ -3,13 +3,13 @@
 
 enum hmr_trans
 {
-    HMR_TRANS_MM = 0,
-    HMR_TRANS_MI = 1,
-    HMR_TRANS_MD = 2,
-    HMR_TRANS_IM = 3,
-    HMR_TRANS_II = 4,
-    HMR_TRANS_DM = 5,
-    HMR_TRANS_DD = 6
+    HMR_TRANS_MM,
+    HMR_TRANS_MI,
+    HMR_TRANS_MD,
+    HMR_TRANS_IM,
+    HMR_TRANS_II,
+    HMR_TRANS_DM,
+    HMR_TRANS_DD
 };
 
 #endif

@@ -3,7 +3,7 @@
 
 enum hmr_state
 {
-    HMR_FSM_BEGIN = 0,
+    HMR_FSM_BEGIN,
     HMR_FSM_HEADER,
     HMR_FSM_NAME,
     HMR_FSM_CONTENT,
