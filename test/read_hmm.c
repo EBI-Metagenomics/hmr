@@ -81,6 +81,8 @@ void test_hmm_empty(void)
     EQ(hmr_next_prof(&hmr, &prof), HMR_ENDFILE);
     EQ(hmr_next_prof(&hmr, &prof), HMR_RUNTIMEERROR);
     EQ(hmr.error, "Runtime error: unexpected prof_next_prof call");
+    hmr_clear_error(&hmr);
+    EQ(hmr.error, "");
 
     fclose(fd);
 }
@@ -114,6 +116,8 @@ void test_hmm_corrupted1(void)
     }
     EQ(prof_idx, 3);
     EQ(rc, HMR_RUNTIMEERROR);
+    hmr_clear_error(&hmr);
+    EQ(hmr.error, "");
 
     fclose(fd);
 }
@@ -145,6 +149,8 @@ void test_hmm_corrupted2(void)
     EQ(prof_idx, 1);
     EQ(rc, HMR_PARSEERROR);
     EQ(hmr.error, "Parse error: expected content before end-of-line: line 153");
+    hmr_clear_error(&hmr);
+    EQ(hmr.error, "");
 
     fclose(fd);
 }
@@ -175,6 +181,8 @@ void test_hmm_corrupted3(void)
     EQ(prof_idx, 0);
     EQ(rc, HMR_PARSEERROR);
     EQ(hmr.error, "Parse error: missing LENG field");
+    hmr_clear_error(&hmr);
+    EQ(hmr.error, "");
 
     fclose(fd);
 }
@@ -206,6 +214,8 @@ void test_hmm_corrupted4(void)
     }
     EQ(prof_idx, 1);
     EQ(rc, HMR_ENDFILE);
+    hmr_clear_error(&hmr);
+    EQ(hmr.error, "");
 
     fclose(fd);
 }
@@ -226,6 +236,8 @@ void test_hmm_corrupted5(void)
     rc = hmr_next_node(&hmr, &prof);
     EQ(rc, HMR_RUNTIMEERROR);
     EQ(hmr.error, "Runtime error: unexpected prof_next_node call");
+    hmr_clear_error(&hmr);
+    EQ(hmr.error, "");
 
     fclose(fd);
 }
@@ -245,6 +257,8 @@ void test_hmm_corrupted6(void)
     rc = hmr_next_node(&hmr, &prof);
     EQ(rc, HMR_PARSEERROR);
     EQ(hmr.error, "Parse error: failed to parse decimal number: line 25");
+    hmr_clear_error(&hmr);
+    EQ(hmr.error, "");
 
     fclose(fd);
 }
@@ -265,6 +279,8 @@ void test_hmm_corrupted7(void)
     rc = hmr_next_node(&hmr, &prof);
     EQ(rc, HMR_RUNTIMEERROR);
     EQ(hmr.error, "Runtime error: unexpected prof_next_node call");
+    hmr_clear_error(&hmr);
+    EQ(hmr.error, "");
 
     fclose(fd);
 }
@@ -285,6 +301,8 @@ void test_hmm_corrupted8(void)
     rc = hmr_next_node(&hmr, &prof);
     EQ(rc, HMR_RUNTIMEERROR);
     EQ(hmr.error, "Runtime error: unexpected prof_next_node call");
+    hmr_clear_error(&hmr);
+    EQ(hmr.error, "");
 
     fclose(fd);
 }
