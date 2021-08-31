@@ -1,6 +1,5 @@
 #include "hmr/prof.h"
 #include "aux.h"
-#include "bug.h"
 #include "error.h"
 #include "fsm.h"
 #include "hmr/hmr.h"

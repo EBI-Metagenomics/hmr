@@ -18,7 +18,6 @@ endif()
 add_library(
   hmr
   src/aux.c
-  src/bug.c
   src/error.c
   src/fsm.c
   src/hmr.c

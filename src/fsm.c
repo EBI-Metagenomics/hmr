@@ -1,12 +1,12 @@
 #include "fsm.h"
 #include "aux.h"
-#include "bug.h"
 #include "error.h"
 #include "hmr/aux.h"
 #include "hmr/prof.h"
 #include "hmr/tok.h"
 #include "hmr/trans.h"
 #include "tok.h"
+#include <assert.h>
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
@@ -193,7 +193,7 @@ char const *fsm_name(enum hmr_state state) { return state_name[state]; }
 
 static enum hmr_rc arrow(struct args *a)
 {
-    BUG(a->tok->id != HMR_TOK_WORD && a->tok->id != HMR_TOK_NL);
+    assert(a->tok->id == HMR_TOK_WORD || a->tok->id == HMR_TOK_NL);
     if (a->tok->id == HMR_TOK_WORD)
     {
         if (a->aux->idx >= HMR_TRANS_SIZE)
@@ -214,7 +214,7 @@ static enum hmr_rc arrow(struct args *a)
 
 static enum hmr_rc header(struct args *a)
 {
-    BUG(a->tok->id != HMR_TOK_WORD && a->tok->id != HMR_TOK_NL);
+    assert(a->tok->id == HMR_TOK_WORD || a->tok->id == HMR_TOK_NL);
     if (a->tok->id == HMR_TOK_WORD)
     {
         if (a->aux->prof.pos > a->aux->prof.begin + 1)
@@ -280,8 +280,8 @@ static enum hmr_rc field_name(struct args *a)
 
 static enum hmr_rc field_content(struct args *a)
 {
-    BUG(a->tok->id != HMR_TOK_WORD && a->tok->id != HMR_TOK_HMM &&
-        a->tok->id != HMR_TOK_COMPO && a->tok->id != HMR_TOK_NL);
+    assert(a->tok->id == HMR_TOK_WORD || a->tok->id == HMR_TOK_HMM ||
+           a->tok->id == HMR_TOK_COMPO || a->tok->id == HMR_TOK_NL);
 
     if (a->tok->id == HMR_TOK_WORD || a->tok->id == HMR_TOK_HMM ||
         a->tok->id == HMR_TOK_COMPO)
@@ -315,7 +315,7 @@ static enum hmr_rc hmm(struct args *a)
 
 static enum hmr_rc symbol(struct args *a)
 {
-    BUG(a->tok->id != HMR_TOK_WORD && a->tok->id != HMR_TOK_NL);
+    assert(a->tok->id == HMR_TOK_WORD || a->tok->id == HMR_TOK_NL);
     if (a->tok->id == HMR_TOK_WORD)
     {
         *(a->aux->prof.pos - 1) = *a->tok->value;
@@ -333,7 +333,7 @@ static enum hmr_rc symbol(struct args *a)
 
 static enum hmr_rc compo(struct args *a)
 {
-    BUG(a->tok->id != HMR_TOK_WORD && a->tok->id != HMR_TOK_NL);
+    assert(a->tok->id == HMR_TOK_WORD || a->tok->id == HMR_TOK_NL);
     if (a->tok->id == HMR_TOK_WORD)
     {
         if (a->aux->idx >= a->prof->symbols_size)
@@ -354,7 +354,7 @@ static enum hmr_rc compo(struct args *a)
 
 static enum hmr_rc insert(struct args *a)
 {
-    BUG(a->tok->id != HMR_TOK_WORD && a->tok->id != HMR_TOK_NL);
+    assert(a->tok->id == HMR_TOK_WORD || a->tok->id == HMR_TOK_NL);
     if (a->tok->id == HMR_TOK_WORD)
     {
         if (a->aux->idx >= a->prof->symbols_size)
@@ -375,7 +375,7 @@ static enum hmr_rc insert(struct args *a)
 
 static enum hmr_rc match(struct args *a)
 {
-    BUG(a->tok->id != HMR_TOK_WORD && a->tok->id != HMR_TOK_NL);
+    assert(a->tok->id == HMR_TOK_WORD || a->tok->id == HMR_TOK_NL);
     if (a->tok->id == HMR_TOK_WORD)
     {
         if (a->state == HMR_FSM_PAUSE)
@@ -409,7 +409,7 @@ static enum hmr_rc match(struct args *a)
 
 static enum hmr_rc trans(struct args *a)
 {
-    BUG(a->tok->id != HMR_TOK_WORD && a->tok->id != HMR_TOK_NL);
+    assert(a->tok->id == HMR_TOK_WORD || a->tok->id == HMR_TOK_NL);
     if (a->tok->id == HMR_TOK_WORD)
     {
         if (a->aux->idx >= HMR_TRANS_SIZE)
