@@ -26,6 +26,10 @@ add_library(
   src/tok.c)
 add_library(HMR::hmr ALIAS hmr)
 
+# Hide functions by default.
+set_property(TARGET hmr PROPERTY C_VISIBILITY_PRESET hidden)
+set_property(TARGET hmr PROPERTY VISIBILITY_INLINES_HIDDEN ON)
+
 include(GenerateExportHeader)
 generate_export_header(
   hmr
