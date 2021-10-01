@@ -5,6 +5,7 @@
 #include "hmr/prof.h"
 #include "hmr/tok.h"
 #include "hmr/trans.h"
+#include "to.h"
 #include "tok.h"
 #include <assert.h>
 #include <math.h>
@@ -14,6 +15,10 @@
 #define XSTR(s) STR(s)
 #define STR(s) #s
 
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
+#define MEMBER_SIZE(type, member) sizeof(((type *)0)->member)
+
+#define INT_ERROR "failed to parse integer"
 #define DEC_ERROR "failed to parse decimal number"
 
 struct args
@@ -81,10 +86,6 @@ static enum hmr_rc insert(struct args *a);
 static enum hmr_rc match(struct args *a);
 
 static enum hmr_rc trans(struct args *a);
-
-static enum hmr_rc to_double(char const *str, double *val);
-
-static enum hmr_rc to_lprob(char const *str, double *val);
 
 static enum hmr_rc check_header(struct hmr_prof *prof);
 
@@ -182,8 +183,7 @@ enum hmr_state fsm_next(enum hmr_state state, struct hmr_tok *tok,
     unsigned col = (unsigned)tok->id;
     struct trans const *const t = &transition[row][col];
     struct args args = {tok, state, aux, prof};
-    if (t->action(&args))
-        return HMR_FSM_ERROR;
+    if (t->action(&args)) return HMR_FSM_ERROR;
     return t->next;
 }
 
@@ -194,8 +194,7 @@ static enum hmr_rc arrow(struct args *a)
     assert(a->tok->id == HMR_TOK_WORD || a->tok->id == HMR_TOK_NL);
     if (a->tok->id == HMR_TOK_WORD)
     {
-        if (a->aux->idx >= HMR_TRANS_SIZE)
-            return unexpect_tok(a);
+        if (a->aux->idx >= HMR_TRANS_SIZE) return unexpect_tok(a);
 
         if (strcmp(a->tok->value, arrows[a->aux->idx]))
             return error_parse(a->tok, "expected %s", arrows[a->aux->idx]);
@@ -233,8 +232,7 @@ static enum hmr_rc header(struct args *a)
     else
     {
         *(a->aux->prof.pos - 1) = '\0';
-        if (check_header(a->prof))
-            return error_parse(a->tok, "invalid header");
+        if (check_header(a->prof)) return error_parse(a->tok, "invalid header");
         aux_init(a->aux);
     }
     return HMR_SUCCESS;
@@ -337,7 +335,7 @@ static enum hmr_rc compo(struct args *a)
         if (a->aux->idx >= a->prof->symbols_size)
             return error_parse(a->tok, "too many compo numbers");
 
-        if (to_lprob(a->tok->value, a->prof->node.compo + a->aux->idx++))
+        if (!to_lprob(a->tok->value, a->prof->node.compo + a->aux->idx++))
             return error_parse(a->tok, DEC_ERROR);
     }
     else
@@ -358,7 +356,7 @@ static enum hmr_rc insert(struct args *a)
         if (a->aux->idx >= a->prof->symbols_size)
             return error_parse(a->tok, "too many insert numbers");
 
-        if (to_lprob(a->tok->value, a->prof->node.insert + a->aux->idx++))
+        if (!to_lprob(a->tok->value, a->prof->node.insert + a->aux->idx++))
             return error_parse(a->tok, DEC_ERROR);
     }
     else
@@ -371,54 +369,44 @@ static enum hmr_rc insert(struct args *a)
     return HMR_SUCCESS;
 }
 
-#define member_size(type, member) sizeof(((type *)0)->member)
+static bool read_map(struct args *a);
+
+static enum hmr_rc read_match_excess(struct args *a)
+{
+    unsigned sz = a->prof->symbols_size;
+    unsigned excess = MEMBER_SIZE(struct hmr_node, excess.buf) + 1;
+    if (a->aux->idx >= sz + excess)
+        return error_parse(a->tok, "too many match numbers");
+
+    if (a->aux->idx == sz)
+    {
+        if (!read_map(a)) return error_parse(a->tok, INT_ERROR);
+        return HMR_SUCCESS;
+    }
+
+    if (a->tok->value[0] == '\0' || a->tok->value[1] != '\0')
+        return error_parse(a->tok, "excesses must be single character");
+
+    a->prof->node.excess.buf[a->aux->idx++ - sz - 1] = a->tok->value[0];
+    return HMR_SUCCESS;
+}
 
 static enum hmr_rc match(struct args *a)
 {
     assert(a->tok->id == HMR_TOK_WORD || a->tok->id == HMR_TOK_NL);
     unsigned sz = a->prof->symbols_size;
-    unsigned excess = member_size(struct hmr_node, excess.buf) + 1;
+    unsigned excess = MEMBER_SIZE(struct hmr_node, excess.buf) + 1;
     if (a->tok->id == HMR_TOK_WORD)
     {
         if (a->state == HMR_FSM_PAUSE)
         {
-            unsigned i = (unsigned)strtoul(a->tok->value, NULL, 10);
-            if (i == 0)
-                return error_parse(a->tok, "failed to convert integer");
-
-            a->prof->node.idx = i;
+            if (!to_uint(a->tok->value, &a->prof->node.idx))
+                return error_parse(a->tok, INT_ERROR);
             return HMR_SUCCESS;
         }
-        if (a->aux->idx >= sz)
-        {
-            if (a->aux->idx >= sz + excess)
-                return error_parse(a->tok, "too many match numbers");
+        if (a->aux->idx >= sz) return read_match_excess(a);
 
-            if (a->aux->idx == sz)
-            {
-                if (a->tok->value[0] == '-' && a->tok->value[1] == '\0')
-                {
-                    a->prof->node.excess.map = HMR_NODE_MAP_NULL;
-                    a->aux->idx++;
-                    return HMR_SUCCESS;
-                }
-                else
-                {
-                    char *end = NULL;
-                    a->prof->node.excess.map =
-                        (unsigned)strtoul(a->tok->value, &end, 10);
-                    a->aux->idx++;
-                    return HMR_SUCCESS;
-                }
-            }
-
-            if (a->tok->value[0] == '\0' || a->tok->value[1] != '\0')
-                return error_parse(a->tok, "excesses must be single character");
-
-            a->prof->node.excess.buf[a->aux->idx++ - sz - 1] = a->tok->value[0];
-            return HMR_SUCCESS;
-        }
-        if (to_lprob(a->tok->value, a->prof->node.match + a->aux->idx++))
+        if (!to_lprob(a->tok->value, a->prof->node.match + a->aux->idx++))
             return error_parse(a->tok, DEC_ERROR);
     }
     else
@@ -438,7 +426,7 @@ static enum hmr_rc trans(struct args *a)
         if (a->aux->idx >= HMR_TRANS_SIZE)
             return error_parse(a->tok, "too many trans numbers");
 
-        if (to_lprob(a->tok->value, a->prof->node.trans + a->aux->idx++))
+        if (!to_lprob(a->tok->value, a->prof->node.trans + a->aux->idx++))
             return error_parse(a->tok, DEC_ERROR);
     }
     else
@@ -451,78 +439,38 @@ static enum hmr_rc trans(struct args *a)
     return HMR_SUCCESS;
 }
 
-static enum hmr_rc to_double(char const *str, double *val)
-{
-    if (str[0] == '*' && str[1] == '\0')
-    {
-        *val = INFINITY;
-        return HMR_SUCCESS;
-    }
-    char *ptr = NULL;
-    *val = strtod(str, &ptr);
-
-    if (*val == 0.0 && str == ptr)
-        return HMR_PARSEERROR;
-
-    if (strchr(str, '\0') != ptr)
-        return HMR_PARSEERROR;
-
-    return HMR_SUCCESS;
-}
-
-static enum hmr_rc to_lprob(char const *str, double *val)
-{
-    enum hmr_rc rc = to_double(str, val);
-    if (rc)
-        return rc;
-    *val = -(*val);
-    return HMR_SUCCESS;
-}
-
 #define HEADER_EXAMPLE "HMMER3/f [3.3.1 | Jul 2020]"
-#define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 
 static enum hmr_rc check_header(struct hmr_prof *prof)
 {
     char tmp[sizeof HEADER_EXAMPLE + 10];
-    if (strlen(prof->header) >= ARRAY_SIZE(tmp))
-        return HMR_PARSEERROR;
+    if (strlen(prof->header) >= ARRAY_SIZE(tmp)) return HMR_PARSEERROR;
 
     strcpy(tmp, prof->header);
     char *ptr = NULL;
     char *tok = NULL;
 
-    if (!(tok = strtok_r(tmp, " ", &ptr)))
-        return HMR_PARSEERROR;
+    if (!(tok = strtok_r(tmp, " ", &ptr))) return HMR_PARSEERROR;
 
-    if (strcmp(tok, "HMMER3/f"))
-        return HMR_PARSEERROR;
+    if (strcmp(tok, "HMMER3/f")) return HMR_PARSEERROR;
 
-    if (!(tok = strtok_r(NULL, " ", &ptr)))
-        return HMR_PARSEERROR;
+    if (!(tok = strtok_r(NULL, " ", &ptr))) return HMR_PARSEERROR;
 
-    if (*tok != '[')
-        return HMR_PARSEERROR;
+    if (*tok != '[') return HMR_PARSEERROR;
 
-    if (!(tok = strtok_r(NULL, " ", &ptr)))
-        return HMR_PARSEERROR;
+    if (!(tok = strtok_r(NULL, " ", &ptr))) return HMR_PARSEERROR;
 
-    if (*tok != '|')
-        return HMR_PARSEERROR;
+    if (*tok != '|') return HMR_PARSEERROR;
 
     /* Month */
-    if (!(tok = strtok_r(NULL, " ", &ptr)))
-        return HMR_PARSEERROR;
+    if (!(tok = strtok_r(NULL, " ", &ptr))) return HMR_PARSEERROR;
 
     /* Year] */
-    if (!(tok = strtok_r(NULL, " ", &ptr)))
-        return HMR_PARSEERROR;
+    if (!(tok = strtok_r(NULL, " ", &ptr))) return HMR_PARSEERROR;
 
-    if (!(tok = strchr(tok, ']')))
-        return HMR_PARSEERROR;
+    if (!(tok = strchr(tok, ']'))) return HMR_PARSEERROR;
 
-    if (strtok_r(NULL, " ", &ptr))
-        return HMR_PARSEERROR;
+    if (strtok_r(NULL, " ", &ptr)) return HMR_PARSEERROR;
 
     return HMR_SUCCESS;
 }
@@ -542,4 +490,16 @@ static enum hmr_rc check_required_metadata(struct hmr_prof *prof)
         return error_parse(prof, "missing ALPH field");
 
     return HMR_SUCCESS;
+}
+
+static bool read_map(struct args *a)
+{
+    if (a->tok->value[0] == '-' && a->tok->value[1] == '\0')
+        a->prof->node.excess.map = HMR_NODE_MAP_NULL;
+    else
+    {
+        if (!to_uint(a->tok->value, &a->prof->node.excess.map)) return false;
+    }
+    a->aux->idx++;
+    return true;
 }
