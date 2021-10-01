@@ -11,8 +11,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define HMR_MATCH_EXCESS_SIZE 5
-
 #define XSTR(s) STR(s)
 #define STR(s) #s
 
@@ -373,9 +371,13 @@ static enum hmr_rc insert(struct args *a)
     return HMR_SUCCESS;
 }
 
+#define member_size(type, member) sizeof(((type *)0)->member)
+
 static enum hmr_rc match(struct args *a)
 {
     assert(a->tok->id == HMR_TOK_WORD || a->tok->id == HMR_TOK_NL);
+    unsigned sz = a->prof->symbols_size;
+    unsigned excess = member_size(struct hmr_node, excess.buf) + 1;
     if (a->tok->id == HMR_TOK_WORD)
     {
         if (a->state == HMR_FSM_PAUSE)
@@ -387,12 +389,33 @@ static enum hmr_rc match(struct args *a)
             a->prof->node.idx = i;
             return HMR_SUCCESS;
         }
-        if (a->aux->idx >= a->prof->symbols_size)
+        if (a->aux->idx >= sz)
         {
-            if (a->aux->idx >= a->prof->symbols_size + HMR_MATCH_EXCESS_SIZE)
+            if (a->aux->idx >= sz + excess)
                 return error_parse(a->tok, "too many match numbers");
 
-            a->aux->idx++;
+            if (a->aux->idx == sz)
+            {
+                if (a->tok->value[0] == '-' && a->tok->value[1] == '\0')
+                {
+                    a->prof->node.excess.map = HMR_NODE_MAP_NULL;
+                    a->aux->idx++;
+                    return HMR_SUCCESS;
+                }
+                else
+                {
+                    char *end = NULL;
+                    a->prof->node.excess.map =
+                        (unsigned)strtoul(a->tok->value, &end, 10);
+                    a->aux->idx++;
+                    return HMR_SUCCESS;
+                }
+            }
+
+            if (a->tok->value[0] == '\0' || a->tok->value[1] != '\0')
+                return error_parse(a->tok, "excesses must be single character");
+
+            a->prof->node.excess.buf[a->aux->idx++ - sz - 1] = a->tok->value[0];
             return HMR_SUCCESS;
         }
         if (to_lprob(a->tok->value, a->prof->node.match + a->aux->idx++))
@@ -400,7 +423,7 @@ static enum hmr_rc match(struct args *a)
     }
     else
     {
-        if (a->aux->idx > a->prof->symbols_size + HMR_MATCH_EXCESS_SIZE)
+        if (a->aux->idx > sz + excess)
             return error_parse(a->tok, "too many match numbers");
         aux_init(a->aux);
     }

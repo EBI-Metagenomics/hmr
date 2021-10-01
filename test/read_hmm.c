@@ -322,6 +322,11 @@ void check_3profs0(struct hmr_prof *prof)
     {
         CLOSE(prof->node.match[0], -0.34643);
         CLOSE(prof->node.match[prof->symbols_size - 1], -7.58384);
+        EQ(prof->node.excess.map, 1);
+        EQ(prof->node.excess.cons, 'A');
+        EQ(prof->node.excess.rf, '-');
+        EQ(prof->node.excess.mm, '-');
+        EQ(prof->node.excess.cs, 'H');
         CLOSE(prof->node.insert[0], -2.68618);
         CLOSE(prof->node.insert[prof->symbols_size - 1], -3.61503);
         CLOSE(prof->node.trans[0], -0.00201);
@@ -331,6 +336,11 @@ void check_3profs0(struct hmr_prof *prof)
     {
         CLOSE(prof->node.match[0], -3.29199);
         CLOSE(prof->node.match[prof->symbols_size - 1], -3.78781);
+        EQ(prof->node.excess.map, 55);
+        EQ(prof->node.excess.cons, 'g');
+        EQ(prof->node.excess.rf, '-');
+        EQ(prof->node.excess.mm, '-');
+        EQ(prof->node.excess.cs, 'T');
         CLOSE(prof->node.insert[0], -2.68618);
         CLOSE(prof->node.insert[prof->symbols_size - 1], -3.61503);
         CLOSE(prof->node.trans[0], -0.00135);
