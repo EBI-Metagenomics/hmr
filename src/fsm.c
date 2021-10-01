@@ -189,6 +189,28 @@ enum hmr_state fsm_next(enum hmr_state state, struct hmr_tok *tok,
 
 char const *fsm_name(enum hmr_state state) { return state_name[state]; }
 
+enum hmr_rc error_parse_arrow(struct hmr_tok *tok, unsigned i);
+
+enum hmr_rc error_parse_arrow(struct hmr_tok *tok, unsigned i)
+{
+    if (i == HMR_TRANS_MM)
+        return error_parse(tok, "expected m->m");
+    else if (i == HMR_TRANS_MI)
+        return error_parse(tok, "expected m->i");
+    else if (i == HMR_TRANS_MD)
+        return error_parse(tok, "expected m->d");
+    else if (i == HMR_TRANS_IM)
+        return error_parse(tok, "expected i->m");
+    else if (i == HMR_TRANS_II)
+        return error_parse(tok, "expected i->i");
+    else if (i == HMR_TRANS_DM)
+        return error_parse(tok, "expected d->m");
+    else if (i == HMR_TRANS_DD)
+        return error_parse(tok, "expected d->d");
+    assert(false);
+    return HMR_SUCCESS;
+}
+
 static enum hmr_rc arrow(struct args *a)
 {
     assert(a->tok->id == HMR_TOK_WORD || a->tok->id == HMR_TOK_NL);
@@ -197,7 +219,7 @@ static enum hmr_rc arrow(struct args *a)
         if (a->aux->idx >= HMR_TRANS_SIZE) return unexpect_tok(a);
 
         if (strcmp(a->tok->value, arrows[a->aux->idx]))
-            return error_parse(a->tok, "expected %s", arrows[a->aux->idx]);
+            return error_parse_arrow(a->tok, a->aux->idx);
         a->aux->idx++;
     }
     else
@@ -477,17 +499,19 @@ static enum hmr_rc check_header(struct hmr_prof *prof)
 
 static enum hmr_rc check_required_metadata(struct hmr_prof *prof)
 {
+    enum hmr_rc rc = HMR_PARSEERROR;
+
     if (prof->meta.acc[0] == '\0')
-        return error_parse(prof, "missing ACC field");
+        return error(rc, prof->error, "missing ACC field");
 
     if (prof->meta.desc[0] == '\0')
-        return error_parse(prof, "missing DESC field");
+        return error(rc, prof->error, "missing DESC field");
 
     if (prof->meta.leng[0] == '\0')
-        return error_parse(prof, "missing LENG field");
+        return error(rc, prof->error, "missing LENG field");
 
     if (prof->meta.alph[0] == '\0')
-        return error_parse(prof, "missing ALPH field");
+        return error(rc, prof->error, "missing ALPH field");
 
     return HMR_SUCCESS;
 }

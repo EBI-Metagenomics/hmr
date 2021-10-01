@@ -1,32 +1,15 @@
 #include "error.h"
 #include "aux.h"
 #include "hmr/aux.h"
+#include "hmr/error.h"
 #include "hmr/prof.h"
 #include "hmr/tok.h"
 #include <assert.h>
 #include <stdarg.h>
 #include <string.h>
 
-#define PARSE_ERROR "Parse error: "
-#define RUNTIME_ERROR "Runtime error: "
-#define LINE ": line"
-
-static int copy_fmt(int dst_size, char *dst, char const *fmt, ...)
-{
-    va_list ap;
-    va_start(ap, fmt);
-    int n = vsnprintf(dst, dst_size, fmt, ap);
-    va_end(ap);
-    assert(n >= 0);
-    return n;
-}
-
-static int copy_ap(int dst_size, char *dst, char const *fmt, va_list ap)
-{
-    int n = vsnprintf(dst, dst_size, fmt, ap);
-    assert(n >= 0);
-    return n;
-}
+static char prefix[][20] = {
+    "", "", "", "IO error:", "Runtime error:", "Parse error:"};
 
 #define unused(x) ((void)(x))
 
@@ -38,34 +21,19 @@ enum hmr_rc error_io(char *dst, int errnum)
     return HMR_IOERROR;
 }
 
-enum hmr_rc error_runtime(char *dst, char const *fmt, ...)
+enum hmr_rc error(enum hmr_rc rc, char *dst, char const *msg)
 {
-    int n = copy_fmt(HMR_ERROR_SIZE, dst, RUNTIME_ERROR);
-    va_list ap;
-    va_start(ap, fmt);
-    copy_ap(HMR_ERROR_SIZE - n, dst + n, fmt, ap);
-    va_end(ap);
-    return HMR_RUNTIMEERROR;
+    int n = snprintf(dst, HMR_ERROR_SIZE, "%s %s", prefix[rc], msg);
+    assert(0 < n && n < HMR_ERROR_SIZE);
+    unused(n);
+    return rc;
 }
 
-enum hmr_rc __error_parse_prof(struct hmr_prof *prof, char const *fmt, ...)
+enum hmr_rc error_parse(struct hmr_tok *tok, char const *msg)
 {
-    int n = copy_fmt(HMR_ERROR_SIZE, prof->error, PARSE_ERROR);
-    va_list ap;
-    va_start(ap, fmt);
-    copy_fmt(HMR_ERROR_SIZE - n, prof->error + n, fmt, ap);
-    va_end(ap);
-    return HMR_PARSEERROR;
-}
-
-enum hmr_rc __error_parse_tok(struct hmr_tok *tok, char const *fmt, ...)
-{
-    int n = copy_fmt(HMR_ERROR_SIZE, tok->error, PARSE_ERROR);
-    va_list ap;
-    va_start(ap, fmt);
-    n += copy_ap(HMR_ERROR_SIZE - n, tok->error + n, fmt, ap);
-    va_end(ap);
-    copy_fmt(HMR_ERROR_SIZE - n, tok->error + n, "%s %d", LINE,
-             tok->line.number);
+    int n = snprintf(tok->error, HMR_ERROR_SIZE, "%s %s: line %d",
+                     prefix[HMR_PARSEERROR], msg, tok->line.number);
+    assert(0 < n && n < HMR_ERROR_SIZE);
+    unused(n);
     return HMR_PARSEERROR;
 }

@@ -51,18 +51,17 @@ enum hmr_rc prof_next_node(struct hmr_prof *prof, FILE *restrict fd,
                            struct hmr_tok *tok)
 {
     if (*state != HMR_FSM_PAUSE)
-        return error_runtime(prof->error, "unexpected %s call", __func__);
+        return error(HMR_RUNTIMEERROR, prof->error,
+                     "unexpected prof_next_node call");
 
     aux_init(aux);
     do
     {
         enum hmr_rc rc = HMR_SUCCESS;
-        if ((rc = tok_next(tok, fd)))
-            return rc;
+        if ((rc = tok_next(tok, fd))) return rc;
 
         *state = fsm_next(*state, tok, aux, prof);
-        if (*state == HMR_FSM_ERROR)
-            return HMR_PARSEERROR;
+        if (*state == HMR_FSM_ERROR) return HMR_PARSEERROR;
         if (*state == HMR_FSM_BEGIN)
         {
             if (hmr_prof_length(prof) != prof->node.idx)
@@ -82,23 +81,22 @@ enum hmr_rc prof_next_prof(struct hmr_prof *prof, FILE *restrict fd,
                            struct hmr_tok *tok)
 {
     if (*state != HMR_FSM_BEGIN)
-        return error_runtime(prof->error, "unexpected %s call", __func__);
+        return error(HMR_RUNTIMEERROR, prof->error,
+                     "unexpected prof_next_prof call");
 
     prof_init(prof, tok->error);
     aux_init(aux);
     do
     {
         enum hmr_rc rc = HMR_SUCCESS;
-        if ((rc = tok_next(tok, fd)))
-            return rc;
+        if ((rc = tok_next(tok, fd))) return rc;
 
         if ((*state = fsm_next(*state, tok, aux, prof)) == HMR_FSM_ERROR)
             return HMR_PARSEERROR;
 
     } while (*state != HMR_FSM_PAUSE && *state != HMR_FSM_END);
 
-    if (*state == HMR_FSM_END)
-        return HMR_ENDFILE;
+    if (*state == HMR_FSM_END) return HMR_ENDFILE;
 
     return HMR_SUCCESS;
 }
@@ -106,9 +104,7 @@ enum hmr_rc prof_next_prof(struct hmr_prof *prof, FILE *restrict fd,
 unsigned hmr_prof_length(struct hmr_prof const *prof)
 {
     long v = strtol(prof->meta.leng, NULL, 10);
-    if (v == LONG_MAX)
-        return UINT_MAX;
-    if (v == LONG_MIN)
-        return 0;
+    if (v == LONG_MAX) return UINT_MAX;
+    if (v == LONG_MIN) return 0;
     return (unsigned)v;
 }
