@@ -26,7 +26,7 @@ add_library(HMR::hmr ALIAS hmr)
 cbp_hide_functions(hmr)
 cbp_set_warning_flags()
 cbp_ci_build_option()
-cbp_generate_export_header(hmr)
+cbp_generate_export_header(hmr EXPORT_FILE)
 
 target_include_directories(
   hmr
@@ -45,7 +45,7 @@ target_compile_options(hmr PRIVATE "-fverbose-asm")
 target_link_libraries(hmr INTERFACE $<$<BOOL:${UNIX}>:m>)
 
 cbp_install(hmr MERGED)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/hmr/export.h DESTINATION include/hmr)
+install(FILES ${EXPORT_FILE} DESTINATION include/hmr)
 
 enable_testing()
 add_subdirectory(test)
