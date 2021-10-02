@@ -7,13 +7,9 @@ project(
 # Generate compile_commands.json file
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-# Set RPATH only if it's not a system directory
-list(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES
-     "${CMAKE_INSTALL_PREFIX}/lib" isSystemDir)
-if("${isSystemDir}" STREQUAL "-1")
-  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
-endif()
+include(external/cmake-boilerplate/cpb.cmake)
+
+cbp_set_rpath()
 
 add_library(
   hmr
@@ -27,49 +23,10 @@ add_library(
   src/tok.c)
 add_library(HMR::hmr ALIAS hmr)
 
-# Hide functions by default.
-set_property(TARGET hmr PROPERTY C_VISIBILITY_PRESET hidden)
-set_property(TARGET hmr PROPERTY VISIBILITY_INLINES_HIDDEN ON)
-
-include(GenerateExportHeader)
-generate_export_header(
-  hmr
-  BASE_NAME
-  HMR
-  INCLUDE_GUARD_NAME
-  HMR_EXPORT_H
-  EXPORT_MACRO_NAME
-  HMR_API
-  EXPORT_FILE_NAME
-  ${CMAKE_CURRENT_BINARY_DIR}/hmr/export.h)
-
-if(CMAKE_C_COMPILER_ID STREQUAL "MSVC")
-  # /wd5105:
-  # https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/c5105?view=msvc-160
-  set(WARNING_FLAGS /W3 /wd5105)
-else()
-  set(WARNING_FLAGS
-      -Wall
-      -Wextra
-      -Wstrict-prototypes
-      -Wshadow
-      -Wconversion
-      -Wmissing-prototypes
-      -Wno-unused-parameter
-      -Wsign-conversion
-      -Wno-unused-function)
-endif()
-
-if(NOT CMAKE_C_COMPILER_ID STREQUAL "GNU")
-  list(APPEND WARNING_FLAGS -Wno-gnu-designator -Wno-empty-translation-unit
-       -Wno-gnu-statement-expression -Wno-nullability-extension)
-endif()
-
-option(CI_BUILD "CI, extra flags will be set" OFF)
-if(CI_BUILD)
-  message(STATUS "CI build enabled")
-  add_compile_options(-Werror)
-endif()
+cbp_hide_functions(hmr)
+cbp_set_warning_flags()
+cbp_ci_build_option()
+cbp_generate_export_header(hmr)
 
 target_include_directories(
   hmr
@@ -87,27 +44,8 @@ target_compile_options(hmr PRIVATE ${WARNING_FLAGS})
 target_compile_options(hmr PRIVATE "-fverbose-asm")
 target_link_libraries(hmr INTERFACE $<$<BOOL:${UNIX}>:m>)
 
-install(
-  TARGETS hmr
-  EXPORT hmr-targets
-  RUNTIME DESTINATION bin
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib
-  PUBLIC_HEADER DESTINATION include)
-install(DIRECTORY src/hmr/ DESTINATION include/hmr)
+cbp_install(hmr MERGED)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/hmr/export.h DESTINATION include/hmr)
-install(
-  EXPORT hmr-targets
-  FILE hmr-targets.cmake
-  NAMESPACE HMR::
-  DESTINATION lib/cmake/hmr)
-include(CMakePackageConfigHelpers)
-configure_package_config_file(
-  hmr-config.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/hmr-config.cmake
-  INSTALL_DESTINATION lib/cmake/hmr
-  NO_SET_AND_CHECK_MACRO)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/hmr-config.cmake
-        DESTINATION lib/cmake/hmr)
 
 enable_testing()
 add_subdirectory(test)

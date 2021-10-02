@@ -1,4 +1,3 @@
-add_custom_target(all_tests)
 find_package(hope REQUIRED)
 
 set(ASSETS ${CMAKE_CURRENT_BINARY_DIR}/assets)
@@ -46,7 +45,6 @@ file(ARCHIVE_EXTRACT INPUT ${ASSETS}/corrupted8.hmm.7z DESTINATION ${ASSETS})
 
 function(hmr_add_test name srcs)
   add_executable(${name} ${srcs})
-  add_dependencies(all_tests ${name})
   target_link_libraries(${name} PRIVATE HMR::hmr)
   target_link_libraries(${name} PRIVATE HOPE::hope)
   target_compile_options(${name} PRIVATE ${WARNING_FLAGS})
