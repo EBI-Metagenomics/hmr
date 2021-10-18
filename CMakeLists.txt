@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
 project(
   hmmer_reader
-  VERSION 0.0.6
+  VERSION 0.0.7
   LANGUAGES C)
 
 # Generate compile_commands.json file
