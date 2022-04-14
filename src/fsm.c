@@ -40,7 +40,11 @@ static char const arrows[HMR_TRANS_SIZE][5] = {
     [HMR_TRANS_IM] = "i->m", [HMR_TRANS_II] = "i->i", [HMR_TRANS_DM] = "d->m",
     [HMR_TRANS_DD] = "d->d"};
 
-static enum hmr_rc nop(struct args *a) { return HMR_SUCCESS; }
+static enum hmr_rc nop(struct args *a)
+{
+    (void)a;
+    return HMR_SUCCESS;
+}
 
 static enum hmr_rc arrow(struct args *a);
 

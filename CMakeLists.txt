@@ -1,15 +1,11 @@
 cmake_minimum_required(VERSION 3.16.3 FATAL_ERROR)
 project(
   hmmer_reader
-  VERSION 0.0.10
+  VERSION 0.1.0
   LANGUAGES C)
 
-# Generate compile_commands.json file
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
-include(external/cmake-boilerplate/cbp.cmake)
-
-cbp_set_rpath()
+include(cmake/compiler-options.cmake)
+include(cmake/sanitizers.cmake)
 
 add_library(
   hmr
@@ -23,20 +19,18 @@ add_library(
   src/tok.c)
 add_library(HMR::hmr ALIAS hmr)
 
-cbp_hide_functions(hmr)
-cbp_set_warning_flags()
-cbp_ci_build_option()
-cbp_generate_export_header(hmr EXPORT_FILE)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_C_STANDARD 11)
 
 target_include_directories(
   hmr
   PUBLIC $<INSTALL_INTERFACE:include>
-         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
          $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+  PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>)
+
 set_target_properties(hmr PROPERTIES VERSION ${PROJECT_VERSION})
 set_target_properties(hmr PROPERTIES SOVERSION ${PROJECT_VERSION_MAJOR})
-target_compile_features(hmr PRIVATE c_std_11)
 target_compile_definitions(
   hmr PRIVATE $<$<BOOL:${WIN32}>:_CRT_NONSTDC_NO_DEPRECATE>)
 target_compile_definitions(hmr PRIVATE $<$<BOOL:${WIN32}>:__extension__>)
@@ -44,7 +38,47 @@ target_compile_options(hmr PRIVATE ${WARNING_FLAGS})
 target_compile_options(hmr PRIVATE "-fverbose-asm")
 target_link_libraries(hmr INTERFACE $<$<BOOL:${UNIX}>:m>)
 
-cbp_install(hmr MERGED)
+set(EXPORT_FILE ${CMAKE_CURRENT_BINARY_DIR}/hmr/export.h)
+include(GenerateExportHeader)
+generate_export_header(
+  hmr
+  BASE_NAME
+  HMR
+  INCLUDE_GUARD_NAME
+  HMR_EXPORT_H
+  EXPORT_MACRO_NAME
+  HMR_API
+  EXPORT_FILE_NAME
+  ${EXPORT_FILE})
+
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+  include(CheckIPOSupported)
+  check_ipo_supported()
+  set_target_properties(hmr PROPERTIES INTERPROCEDURAL_OPTIMIZATION TRUE)
+endif()
+
+install(TARGETS hmr EXPORT hmr-targets)
+
+install(DIRECTORY include/hmr/ DESTINATION include/hmr)
+
+install(
+  EXPORT hmr-targets
+  FILE hmr-targets.cmake
+  NAMESPACE HMR::
+  DESTINATION lib/cmake/hmr)
+
+include(CMakePackageConfigHelpers)
+
+set(CMAKE_CONFIG_FILE ${CMAKE_CURRENT_BINARY_DIR}/hmr-config.cmake)
+configure_package_config_file(hmr-config.cmake.in ${CMAKE_CONFIG_FILE}
+                              INSTALL_DESTINATION lib/cmake/hmr)
+
+set(CMAKE_VERSION_FILE ${CMAKE_CURRENT_BINARY_DIR}/hmr-config-version.cmake)
+write_basic_package_version_file(${CMAKE_VERSION_FILE}
+                                 COMPATIBILITY SameMajorVersion)
+
+install(FILES ${CMAKE_VERSION_FILE} ${CMAKE_CONFIG_FILE}
+        DESTINATION lib/cmake/hmr)
 install(FILES ${EXPORT_FILE} DESTINATION include/hmr)
 
 enable_testing()
