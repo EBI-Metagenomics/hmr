@@ -29,5 +29,6 @@ HMR_API void hmr_init(struct hmr *hmr, FILE *restrict fp);
 HMR_API enum hmr_rc hmr_next_prof(struct hmr *hmr, struct hmr_prof *prof);
 HMR_API enum hmr_rc hmr_next_node(struct hmr *hmr, struct hmr_prof *prof);
 HMR_API void hmr_clear_error(struct hmr *hmr);
+HMR_API int hmr_count_profiles(char const *filepath);
 
 #endif
