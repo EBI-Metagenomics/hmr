@@ -14,18 +14,18 @@
 
 struct hmr
 {
-    FILE *restrict fd;
+    FILE *restrict fp;
     enum hmr_state state;
     struct hmr_tok tok;
     struct hmr_aux aux;
     char error[HMR_ERROR_SIZE];
 };
 
-#define HMR_DECLARE(name, fd)                                                  \
+#define HMR_DECLARE(name, fp)                                                  \
     struct hmr name;                                                           \
-    hmr_init(&name, fd)
+    hmr_init(&name, fp)
 
-HMR_API void hmr_init(struct hmr *hmr, FILE *restrict fd);
+HMR_API void hmr_init(struct hmr *hmr, FILE *restrict fp);
 HMR_API enum hmr_rc hmr_next_prof(struct hmr *hmr, struct hmr_prof *prof);
 HMR_API enum hmr_rc hmr_next_node(struct hmr *hmr, struct hmr_prof *prof);
 HMR_API void hmr_clear_error(struct hmr *hmr);

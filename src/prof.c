@@ -10,21 +10,21 @@
 #include <limits.h>
 #include <stdlib.h>
 
-void hmr_prof_dump(struct hmr_prof const *prof, FILE *restrict fd)
+void hmr_prof_dump(struct hmr_prof const *prof, FILE *restrict fp)
 {
-    fprintf(fd, "HEADER: %s\n", prof->header);
-    fprintf(fd, "  Name: %s\n", prof->meta.name);
-    fprintf(fd, "   Acc: %s\n", prof->meta.acc);
-    fprintf(fd, "  Desc: %s\n", prof->meta.desc);
-    fprintf(fd, "  Leng: %s\n", prof->meta.leng);
-    fprintf(fd, "  Alph: %s\n", prof->meta.alph);
-    fprintf(fd, "  Name: %s\n", prof->meta.name);
-    fprintf(fd, "  ");
+    fprintf(fp, "HEADER: %s\n", prof->header);
+    fprintf(fp, "  Name: %s\n", prof->meta.name);
+    fprintf(fp, "   Acc: %s\n", prof->meta.acc);
+    fprintf(fp, "  Desc: %s\n", prof->meta.desc);
+    fprintf(fp, "  Leng: %s\n", prof->meta.leng);
+    fprintf(fp, "  Alph: %s\n", prof->meta.alph);
+    fprintf(fp, "  Name: %s\n", prof->meta.name);
+    fprintf(fp, "  ");
     for (unsigned i = 0; i < prof->symbols_size; ++i)
     {
-        fprintf(fd, "       %c", prof->symbols[i]);
+        fprintf(fp, "       %c", prof->symbols[i]);
     }
-    fprintf(fd, "\n");
+    fprintf(fp, "\n");
 }
 
 void hmr_prof_init(struct hmr_prof *prof, struct hmr *hmr)
@@ -46,7 +46,7 @@ void prof_init(struct hmr_prof *prof, char *error)
     node_init(&prof->node);
 }
 
-enum hmr_rc prof_next_node(struct hmr_prof *prof, FILE *restrict fd,
+enum hmr_rc prof_next_node(struct hmr_prof *prof, FILE *restrict fp,
                            struct hmr_aux *aux, enum hmr_state *state,
                            struct hmr_tok *tok)
 {
@@ -58,7 +58,7 @@ enum hmr_rc prof_next_node(struct hmr_prof *prof, FILE *restrict fd,
     do
     {
         enum hmr_rc rc = HMR_SUCCESS;
-        if ((rc = tok_next(tok, fd))) return rc;
+        if ((rc = tok_next(tok, fp))) return rc;
 
         *state = fsm_next(*state, tok, aux, prof);
         if (*state == HMR_FSM_ERROR) return HMR_PARSEERROR;
@@ -74,7 +74,7 @@ enum hmr_rc prof_next_node(struct hmr_prof *prof, FILE *restrict fd,
     return HMR_SUCCESS;
 }
 
-enum hmr_rc prof_next_prof(struct hmr_prof *prof, FILE *restrict fd,
+enum hmr_rc prof_next_prof(struct hmr_prof *prof, FILE *restrict fp,
                            struct hmr_aux *aux, enum hmr_state *state,
                            struct hmr_tok *tok)
 {
@@ -87,7 +87,7 @@ enum hmr_rc prof_next_prof(struct hmr_prof *prof, FILE *restrict fd,
     do
     {
         enum hmr_rc rc = HMR_SUCCESS;
-        if ((rc = tok_next(tok, fd))) return rc;
+        if ((rc = tok_next(tok, fp))) return rc;
 
         if ((*state = fsm_next(*state, tok, aux, prof)) == HMR_FSM_ERROR)
             return HMR_PARSEERROR;

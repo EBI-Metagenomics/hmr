@@ -39,12 +39,12 @@ int main(void)
 
 void test_hmm_3profs(void)
 {
-    FILE *fd = fopen(ASSETS "/three-profs.hmm", "r");
-    NOTNULL(fd);
+    FILE *fp = fopen(ASSETS "/three-profs.hmm", "r");
+    NOTNULL(fp);
     unsigned symbol_size = 20;
     unsigned prof_size[] = {40, 235, 449};
 
-    HMR_DECLARE(hmr, fd);
+    HMR_DECLARE(hmr, fp);
 
     HMR_PROF_DECLARE(prof, &hmr);
 
@@ -66,15 +66,15 @@ void test_hmm_3profs(void)
     }
     EQ(prof_idx, 3);
 
-    fclose(fd);
+    fclose(fp);
 }
 
 void test_hmm_empty(void)
 {
-    FILE *fd = fopen(ASSETS "/empty.hmm", "r");
-    NOTNULL(fd);
+    FILE *fp = fopen(ASSETS "/empty.hmm", "r");
+    NOTNULL(fp);
 
-    HMR_DECLARE(hmr, fd);
+    HMR_DECLARE(hmr, fp);
 
     HMR_PROF_DECLARE(prof, &hmr);
 
@@ -84,15 +84,15 @@ void test_hmm_empty(void)
     hmr_clear_error(&hmr);
     EQ(hmr.error, "");
 
-    fclose(fd);
+    fclose(fp);
 }
 
 void test_hmm_corrupted1(void)
 {
-    FILE *fd = fopen(ASSETS "/corrupted1.hmm", "r");
-    NOTNULL(fd);
+    FILE *fp = fopen(ASSETS "/corrupted1.hmm", "r");
+    NOTNULL(fp);
 
-    HMR_DECLARE(hmr, fd);
+    HMR_DECLARE(hmr, fp);
 
     HMR_PROF_DECLARE(prof, &hmr);
 
@@ -110,8 +110,7 @@ void test_hmm_corrupted1(void)
             EQ(rc, HMR_PARSEERROR);
             EQ(hmr.error, "Parse error: unexpected end-of-file: line 563");
         }
-        if (prof_idx == 2)
-            EQ(node_idx, 6);
+        if (prof_idx == 2) EQ(node_idx, 6);
         prof_idx++;
     }
     EQ(prof_idx, 3);
@@ -119,16 +118,16 @@ void test_hmm_corrupted1(void)
     hmr_clear_error(&hmr);
     EQ(hmr.error, "");
 
-    fclose(fd);
+    fclose(fp);
 }
 
 void test_hmm_corrupted2(void)
 {
-    FILE *fd = fopen(ASSETS "/corrupted2.hmm", "r");
-    NOTNULL(fd);
+    FILE *fp = fopen(ASSETS "/corrupted2.hmm", "r");
+    NOTNULL(fp);
     unsigned prof_size[] = {40};
 
-    HMR_DECLARE(hmr, fd);
+    HMR_DECLARE(hmr, fp);
 
     HMR_PROF_DECLARE(prof, &hmr);
 
@@ -152,16 +151,16 @@ void test_hmm_corrupted2(void)
     hmr_clear_error(&hmr);
     EQ(hmr.error, "");
 
-    fclose(fd);
+    fclose(fp);
 }
 
 void test_hmm_corrupted3(void)
 {
-    FILE *fd = fopen(ASSETS "/corrupted3.hmm", "r");
-    NOTNULL(fd);
+    FILE *fp = fopen(ASSETS "/corrupted3.hmm", "r");
+    NOTNULL(fp);
     unsigned prof_size[] = {40};
 
-    HMR_DECLARE(hmr, fd);
+    HMR_DECLARE(hmr, fp);
 
     HMR_PROF_DECLARE(prof, &hmr);
 
@@ -184,15 +183,15 @@ void test_hmm_corrupted3(void)
     hmr_clear_error(&hmr);
     EQ(hmr.error, "");
 
-    fclose(fd);
+    fclose(fp);
 }
 
 void test_hmm_corrupted4(void)
 {
-    FILE *fd = fopen(ASSETS "/corrupted4.hmm", "r");
-    NOTNULL(fd);
+    FILE *fp = fopen(ASSETS "/corrupted4.hmm", "r");
+    NOTNULL(fp);
 
-    HMR_DECLARE(hmr, fd);
+    HMR_DECLARE(hmr, fp);
 
     HMR_PROF_DECLARE(prof, &hmr);
 
@@ -217,15 +216,15 @@ void test_hmm_corrupted4(void)
     hmr_clear_error(&hmr);
     EQ(hmr.error, "");
 
-    fclose(fd);
+    fclose(fp);
 }
 
 void test_hmm_corrupted5(void)
 {
-    FILE *fd = fopen(ASSETS "/corrupted5.hmm", "r");
-    NOTNULL(fd);
+    FILE *fp = fopen(ASSETS "/corrupted5.hmm", "r");
+    NOTNULL(fp);
 
-    HMR_DECLARE(hmr, fd);
+    HMR_DECLARE(hmr, fp);
 
     HMR_PROF_DECLARE(prof, &hmr);
 
@@ -239,15 +238,15 @@ void test_hmm_corrupted5(void)
     hmr_clear_error(&hmr);
     EQ(hmr.error, "");
 
-    fclose(fd);
+    fclose(fp);
 }
 
 void test_hmm_corrupted6(void)
 {
-    FILE *fd = fopen(ASSETS "/corrupted6.hmm", "r");
-    NOTNULL(fd);
+    FILE *fp = fopen(ASSETS "/corrupted6.hmm", "r");
+    NOTNULL(fp);
 
-    HMR_DECLARE(hmr, fd);
+    HMR_DECLARE(hmr, fp);
 
     HMR_PROF_DECLARE(prof, &hmr);
 
@@ -260,15 +259,15 @@ void test_hmm_corrupted6(void)
     hmr_clear_error(&hmr);
     EQ(hmr.error, "");
 
-    fclose(fd);
+    fclose(fp);
 }
 
 void test_hmm_corrupted7(void)
 {
-    FILE *fd = fopen(ASSETS "/corrupted7.hmm", "r");
-    NOTNULL(fd);
+    FILE *fp = fopen(ASSETS "/corrupted7.hmm", "r");
+    NOTNULL(fp);
 
-    HMR_DECLARE(hmr, fd);
+    HMR_DECLARE(hmr, fp);
 
     HMR_PROF_DECLARE(prof, &hmr);
 
@@ -282,15 +281,15 @@ void test_hmm_corrupted7(void)
     hmr_clear_error(&hmr);
     EQ(hmr.error, "");
 
-    fclose(fd);
+    fclose(fp);
 }
 
 void test_hmm_corrupted8(void)
 {
-    FILE *fd = fopen(ASSETS "/corrupted8.hmm", "r");
-    NOTNULL(fd);
+    FILE *fp = fopen(ASSETS "/corrupted8.hmm", "r");
+    NOTNULL(fp);
 
-    HMR_DECLARE(hmr, fd);
+    HMR_DECLARE(hmr, fp);
 
     HMR_PROF_DECLARE(prof, &hmr);
 
@@ -304,7 +303,7 @@ void test_hmm_corrupted8(void)
     hmr_clear_error(&hmr);
     EQ(hmr.error, "");
 
-    fclose(fd);
+    fclose(fp);
 }
 void check_3profs0(struct hmr_prof *prof)
 {

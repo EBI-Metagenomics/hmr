@@ -47,6 +47,6 @@ static_assert(HMR_OFFSET(cs) - HMR_OFFSET(mm) == 1, "must be packed");
 static_assert(HMR_OFFSET(buf) - HMR_OFFSET(cons) == 0, "must be packed");
 #undef HMR_OFFSET
 
-HMR_API void hmr_node_dump(struct hmr_node const *node, FILE *restrict fd);
+HMR_API void hmr_node_dump(struct hmr_node const *node, FILE *restrict fp);
 
 #endif

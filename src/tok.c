@@ -7,7 +7,7 @@
 #define DELIM " \t\r"
 
 static void add_space_before_newline(char line[HMR_TOK_LINE_MAX]);
-static enum hmr_rc next_line(FILE *restrict fd, char error[HMR_ERROR_SIZE],
+static enum hmr_rc next_line(FILE *restrict fp, char error[HMR_ERROR_SIZE],
                              char line[HMR_TOK_LINE_MAX]);
 
 void tok_init(struct hmr_tok *tok, char *error)
@@ -21,13 +21,13 @@ void tok_init(struct hmr_tok *tok, char *error)
     tok->error = error;
 }
 
-enum hmr_rc tok_next(struct hmr_tok *tok, FILE *restrict fd)
+enum hmr_rc tok_next(struct hmr_tok *tok, FILE *restrict fp)
 {
     enum hmr_rc rc = HMR_SUCCESS;
 
     if (tok->line.consumed)
     {
-        if ((rc = next_line(fd, tok->error, tok->line.data)))
+        if ((rc = next_line(fp, tok->error, tok->line.data)))
         {
             if (rc == HMR_ENDFILE)
             {
@@ -41,8 +41,7 @@ enum hmr_rc tok_next(struct hmr_tok *tok, FILE *restrict fd)
         tok->value = strtok_r(tok->line.data, DELIM, &tok->line.ctx);
         tok->line.number++;
 
-        if (!tok->value)
-            return HMR_PARSEERROR;
+        if (!tok->value) return HMR_PARSEERROR;
     }
     else
         tok->value = strtok_r(NULL, DELIM, &tok->line.ctx);
@@ -63,15 +62,14 @@ enum hmr_rc tok_next(struct hmr_tok *tok, FILE *restrict fd)
     return HMR_SUCCESS;
 }
 
-static enum hmr_rc next_line(FILE *restrict fd, char error[HMR_ERROR_SIZE],
+static enum hmr_rc next_line(FILE *restrict fp, char error[HMR_ERROR_SIZE],
                              char line[HMR_TOK_LINE_MAX])
 {
-    if (!fgets(line, HMR_TOK_LINE_MAX - 1, fd))
+    if (!fgets(line, HMR_TOK_LINE_MAX - 1, fp))
     {
-        if (feof(fd))
-            return HMR_ENDFILE;
+        if (feof(fp)) return HMR_ENDFILE;
 
-        return error_io(error, ferror(fd));
+        return error_io(error, ferror(fp));
     }
 
     add_space_before_newline(line);

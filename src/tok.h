@@ -7,6 +7,6 @@
 struct hmr_tok;
 
 void tok_init(struct hmr_tok *tok, char *error);
-enum hmr_rc tok_next(struct hmr_tok *tok, FILE *restrict fd);
+enum hmr_rc tok_next(struct hmr_tok *tok, FILE *restrict fp);
 
 #endif
