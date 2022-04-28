@@ -1,5 +1,5 @@
 #include "hmr/hmr.h"
-#include "hope/hope.h"
+#include "hope.h"
 
 void test_hmm_3profs(void);
 void test_hmm_empty(void);

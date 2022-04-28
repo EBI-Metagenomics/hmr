@@ -1,5 +1,3 @@
-find_package(hope REQUIRED)
-
 set(ASSETS ${CMAKE_CURRENT_BINARY_DIR}/assets)
 file(MAKE_DIRECTORY ${ASSETS})
 set(URL "https://f002.backblazeb2.com/file/hmmer-reader")
@@ -37,7 +35,6 @@ file(DOWNLOAD ${URL}/corrupted8.hmm ${ASSETS}/corrupted8.hmm
 function(hmr_add_test name srcs)
   add_executable(${name} ${srcs})
   target_link_libraries(${name} PRIVATE HMR::hmr)
-  target_link_libraries(${name} PRIVATE HOPE::hope)
   target_compile_options(${name} PRIVATE ${WARNING_FLAGS})
   target_compile_features(${name} PRIVATE c_std_11)
   add_test(NAME ${name} COMMAND ${name})
