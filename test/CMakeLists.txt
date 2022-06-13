@@ -1,6 +1,6 @@
 set(ASSETS ${CMAKE_CURRENT_BINARY_DIR}/assets)
 file(MAKE_DIRECTORY ${ASSETS})
-set(URL "https://f002.backblazeb2.com/file/hmmer-reader")
+set(URL "https://uk1s3.embassy.ebi.ac.uk/deciphon")
 
 file(DOWNLOAD ${URL}/three-profs.hmm ${ASSETS}/three-profs.hmm
      EXPECTED_HASH MD5=326b9aa04c6f6213e475d5174cc3746c)
