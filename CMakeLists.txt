@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16.3 FATAL_ERROR)
 project(
   hmmer_reader
-  VERSION 0.1.2
+  VERSION 0.1.3
   LANGUAGES C)
 
 include(cmake/compiler-options.cmake)
