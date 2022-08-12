@@ -1,8 +1,23 @@
 cmake_minimum_required(VERSION 3.16.3 FATAL_ERROR)
 project(
   hmmer_reader
-  VERSION 0.1.3
+  VERSION 0.1.4
   LANGUAGES C)
+
+set(HMR_MAIN_PROJECT OFF)
+if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+  set(HMR_MAIN_PROJECT ON)
+endif()
+
+if(HMR_MAIN_PROJECT)
+  set(HMR_BUILD_TESTS_DEFAULT ON)
+else()
+  set(HMR_BUILD_TESTS_DEFAULT OFF)
+endif()
+
+option(HMR_BUILD_TESTS "Build the unit tests" ${HMR_BUILD_TESTS_DEFAULT})
+message(STATUS "HMR_MAIN_PROJECT: " ${HMR_MAIN_PROJECT})
+message(STATUS "HMR_BUILD_TESTS: " ${HMR_BUILD_TESTS})
 
 include(cmake/compiler-options.cmake)
 include(cmake/sanitizers.cmake)
@@ -20,7 +35,6 @@ add_library(
 add_library(HMR::hmr ALIAS hmr)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(CMAKE_C_STANDARD 11)
 
 target_include_directories(
   hmr
@@ -37,6 +51,7 @@ target_compile_definitions(hmr PRIVATE $<$<BOOL:${WIN32}>:__extension__>)
 target_compile_options(hmr PRIVATE ${WARNING_FLAGS})
 target_compile_options(hmr PRIVATE "-fverbose-asm")
 target_link_libraries(hmr INTERFACE $<$<BOOL:${UNIX}>:m>)
+target_compile_features(hmr PRIVATE c_std_11)
 
 set(EXPORT_FILE ${CMAKE_CURRENT_BINARY_DIR}/hmr/export.h)
 include(GenerateExportHeader)
@@ -85,8 +100,10 @@ install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/README.md
               ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.md
         DESTINATION share/docs/${PROJECT_NAME})
 
-enable_testing()
-add_subdirectory(test)
+if(HMR_BUILD_TESTS)
+  enable_testing()
+  add_subdirectory(test)
+endif()
 
 set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
 set(CPACK_PACKAGE_VENDOR "Danilo Horta")
