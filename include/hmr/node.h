@@ -7,8 +7,11 @@
 #include <stddef.h>
 #include <stdio.h>
 
-#define HMR_SYMBOLS_MAX 32
-#define HMR_TRANS_SIZE 7
+enum
+{
+    HMR_SYMBOLS_MAX = 32,
+    HMR_TRANS_SIZE = 7,
+};
 
 struct hmr_node
 {

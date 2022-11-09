@@ -23,7 +23,7 @@ void hmr_node_dump(struct hmr_node const *node, FILE *restrict fp)
     fprintf(fp, "\n");
 }
 
-void node_init(struct hmr_node *node)
+void hmr_node_init(struct hmr_node *node)
 {
     node->symbols_size = 0;
     node->idx = 0;

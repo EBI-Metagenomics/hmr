@@ -13,15 +13,7 @@ static char prefix[][20] = {
 
 #define unused(x) ((void)(x))
 
-enum hmr_rc error_io(char *dst, int errnum)
-{
-    int rc = strerror_r(errnum, dst, HMR_ERROR_SIZE);
-    assert(!rc);
-    unused(rc);
-    return HMR_IOERROR;
-}
-
-enum hmr_rc error(enum hmr_rc rc, char *dst, char const *msg)
+int hmr_err(int rc, char *dst, char const *msg)
 {
     int n = snprintf(dst, HMR_ERROR_SIZE, "%s %s", prefix[rc], msg);
     assert(0 < n && n < HMR_ERROR_SIZE);
@@ -29,11 +21,19 @@ enum hmr_rc error(enum hmr_rc rc, char *dst, char const *msg)
     return rc;
 }
 
-enum hmr_rc error_parse(struct hmr_tok *tok, char const *msg)
+int hmr_eio(char *dst, int errnum)
+{
+    int rc = strerror_r(errnum, dst, HMR_ERROR_SIZE);
+    assert(!rc);
+    unused(rc);
+    return HMR_EIO;
+}
+
+int hmr_eparse(struct hmr_tok *tok, char const *msg)
 {
     int n = snprintf(tok->error, HMR_ERROR_SIZE, "%s %s: line %d",
-                     prefix[HMR_PARSEERROR], msg, tok->line.number);
+                     prefix[HMR_EPARSE], msg, tok->line.number);
     assert(0 < n && n < HMR_ERROR_SIZE);
     unused(n);
-    return HMR_PARSEERROR;
+    return HMR_EPARSE;
 }

@@ -49,7 +49,7 @@ void test_hmm_3profs(void)
     HMR_PROF_DECLARE(prof, &hmr);
 
     unsigned prof_idx = 0;
-    enum hmr_rc rc = HMR_SUCCESS;
+    int rc = HMR_OK;
     while (!(rc = hmr_next_prof(&hmr, &prof)))
     {
         EQ(prof.symbols_size, symbol_size);
@@ -78,8 +78,8 @@ void test_hmm_empty(void)
 
     HMR_PROF_DECLARE(prof, &hmr);
 
-    EQ(hmr_next_prof(&hmr, &prof), HMR_ENDFILE);
-    EQ(hmr_next_prof(&hmr, &prof), HMR_RUNTIMEERROR);
+    EQ(hmr_next_prof(&hmr, &prof), HMR_EOF);
+    EQ(hmr_next_prof(&hmr, &prof), HMR_EUSAGE);
     EQ(hmr.error, "Runtime error: unexpected prof_next_prof call");
     hmr_clear_error(&hmr);
     EQ(hmr.error, "");
@@ -97,7 +97,7 @@ void test_hmm_corrupted1(void)
     HMR_PROF_DECLARE(prof, &hmr);
 
     unsigned prof_idx = 0;
-    enum hmr_rc rc = HMR_SUCCESS;
+    int rc = HMR_OK;
     while (!(rc = hmr_next_prof(&hmr, &prof)))
     {
         unsigned node_idx = 0;
@@ -107,14 +107,14 @@ void test_hmm_corrupted1(void)
         }
         if (prof_idx == 2 && node_idx == 6)
         {
-            EQ(rc, HMR_PARSEERROR);
+            EQ(rc, HMR_EPARSE);
             EQ(hmr.error, "Parse error: unexpected end-of-file: line 563");
         }
         if (prof_idx == 2) EQ(node_idx, 6);
         prof_idx++;
     }
     EQ(prof_idx, 3);
-    EQ(rc, HMR_RUNTIMEERROR);
+    EQ(rc, HMR_EUSAGE);
     hmr_clear_error(&hmr);
     EQ(hmr.error, "");
 
@@ -132,7 +132,7 @@ void test_hmm_corrupted2(void)
     HMR_PROF_DECLARE(prof, &hmr);
 
     unsigned prof_idx = 0;
-    enum hmr_rc rc = HMR_SUCCESS;
+    int rc = HMR_OK;
     while (!(rc = hmr_next_prof(&hmr, &prof)))
     {
         unsigned node_idx = 0;
@@ -143,10 +143,10 @@ void test_hmm_corrupted2(void)
         EQ(prof.node.idx, prof_size[prof_idx]);
         EQ(hmr_prof_length(&prof), prof_size[prof_idx]);
         prof_idx++;
-        EQ(rc, HMR_ENDNODE);
+        EQ(rc, HMR_END);
     }
     EQ(prof_idx, 1);
-    EQ(rc, HMR_PARSEERROR);
+    EQ(rc, HMR_EPARSE);
     EQ(hmr.error, "Parse error: expected content before end-of-line: line 153");
     hmr_clear_error(&hmr);
     EQ(hmr.error, "");
@@ -165,7 +165,7 @@ void test_hmm_corrupted3(void)
     HMR_PROF_DECLARE(prof, &hmr);
 
     unsigned prof_idx = 0;
-    enum hmr_rc rc = HMR_SUCCESS;
+    int rc = HMR_OK;
     while (!(rc = hmr_next_prof(&hmr, &prof)))
     {
         unsigned node_idx = 0;
@@ -178,7 +178,7 @@ void test_hmm_corrupted3(void)
         prof_idx++;
     }
     EQ(prof_idx, 0);
-    EQ(rc, HMR_PARSEERROR);
+    EQ(rc, HMR_EPARSE);
     EQ(hmr.error, "Parse error: missing LENG field");
     hmr_clear_error(&hmr);
     EQ(hmr.error, "");
@@ -196,7 +196,7 @@ void test_hmm_corrupted4(void)
     HMR_PROF_DECLARE(prof, &hmr);
 
     unsigned prof_idx = 0;
-    enum hmr_rc rc = HMR_SUCCESS;
+    int rc = HMR_OK;
     while (!(rc = hmr_next_prof(&hmr, &prof)))
     {
         unsigned node_idx = 0;
@@ -204,7 +204,7 @@ void test_hmm_corrupted4(void)
         {
             node_idx++;
         }
-        EQ(rc, HMR_PARSEERROR);
+        EQ(rc, HMR_EPARSE);
         EQ(hmr.error, "Parse error: profile length mismatch: line 33");
         EQ(node_idx, 3);
         EQ(prof.node.idx, 2);
@@ -212,7 +212,7 @@ void test_hmm_corrupted4(void)
         prof_idx++;
     }
     EQ(prof_idx, 1);
-    EQ(rc, HMR_ENDFILE);
+    EQ(rc, HMR_EOF);
     hmr_clear_error(&hmr);
     EQ(hmr.error, "");
 
@@ -228,12 +228,12 @@ void test_hmm_corrupted5(void)
 
     HMR_PROF_DECLARE(prof, &hmr);
 
-    enum hmr_rc rc = HMR_SUCCESS;
+    int rc = HMR_OK;
     rc = hmr_next_prof(&hmr, &prof);
-    EQ(rc, HMR_PARSEERROR);
+    EQ(rc, HMR_EPARSE);
     EQ(hmr.error, "Parse error: unexpected token: line 4");
     rc = hmr_next_node(&hmr, &prof);
-    EQ(rc, HMR_RUNTIMEERROR);
+    EQ(rc, HMR_EUSAGE);
     EQ(hmr.error, "Runtime error: unexpected prof_next_node call");
     hmr_clear_error(&hmr);
     EQ(hmr.error, "");
@@ -250,11 +250,11 @@ void test_hmm_corrupted6(void)
 
     HMR_PROF_DECLARE(prof, &hmr);
 
-    enum hmr_rc rc = HMR_SUCCESS;
+    int rc = HMR_OK;
     rc = hmr_next_prof(&hmr, &prof);
-    EQ(rc, HMR_SUCCESS);
+    EQ(rc, HMR_OK);
     rc = hmr_next_node(&hmr, &prof);
-    EQ(rc, HMR_PARSEERROR);
+    EQ(rc, HMR_EPARSE);
     EQ(hmr.error, "Parse error: failed to parse decimal number: line 25");
     hmr_clear_error(&hmr);
     EQ(hmr.error, "");
@@ -271,12 +271,12 @@ void test_hmm_corrupted7(void)
 
     HMR_PROF_DECLARE(prof, &hmr);
 
-    enum hmr_rc rc = HMR_SUCCESS;
+    int rc = HMR_OK;
     rc = hmr_next_prof(&hmr, &prof);
-    EQ(rc, HMR_PARSEERROR);
+    EQ(rc, HMR_EPARSE);
     EQ(hmr.error, "Parse error: invalid header: line 1");
     rc = hmr_next_node(&hmr, &prof);
-    EQ(rc, HMR_RUNTIMEERROR);
+    EQ(rc, HMR_EUSAGE);
     EQ(hmr.error, "Runtime error: unexpected prof_next_node call");
     hmr_clear_error(&hmr);
     EQ(hmr.error, "");
@@ -293,12 +293,12 @@ void test_hmm_corrupted8(void)
 
     HMR_PROF_DECLARE(prof, &hmr);
 
-    enum hmr_rc rc = HMR_SUCCESS;
+    int rc = HMR_OK;
     rc = hmr_next_prof(&hmr, &prof);
-    EQ(rc, HMR_PARSEERROR);
+    EQ(rc, HMR_EPARSE);
     EQ(hmr.error, "Parse error: expected i->i: line 9");
     rc = hmr_next_node(&hmr, &prof);
-    EQ(rc, HMR_RUNTIMEERROR);
+    EQ(rc, HMR_EUSAGE);
     EQ(hmr.error, "Runtime error: unexpected prof_next_node call");
     hmr_clear_error(&hmr);
     EQ(hmr.error, "");

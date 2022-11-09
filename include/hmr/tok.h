@@ -13,7 +13,10 @@ enum hmr_tok_id
     HMR_TOK_EOF,
 };
 
-#define HMR_TOK_LINE_MAX 256
+enum
+{
+    HMR_TOK_LINE_MAX = 256,
+};
 
 struct hmr_tok
 {

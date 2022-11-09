@@ -2,7 +2,7 @@
 #include "hmr/aux.h"
 #include <stdlib.h>
 
-void aux_init(struct hmr_aux *aux)
+void hmr_aux_init(struct hmr_aux *aux)
 {
     aux->prof.begin = NULL;
     aux->prof.pos = NULL;

@@ -1,7 +1,7 @@
-cmake_minimum_required(VERSION 3.16.3 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.21.0 FATAL_ERROR)
 project(
   hmmer_reader
-  VERSION 0.1.4
+  VERSION 0.1.5
   LANGUAGES C)
 
 set(HMR_MAIN_PROJECT OFF)
@@ -35,6 +35,7 @@ add_library(
 add_library(HMR::hmr ALIAS hmr)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_C_EXTENSIONS OFF)
 
 target_include_directories(
   hmr
@@ -45,12 +46,7 @@ target_include_directories(
 
 set_target_properties(hmr PROPERTIES VERSION ${PROJECT_VERSION})
 set_target_properties(hmr PROPERTIES SOVERSION ${PROJECT_VERSION_MAJOR})
-target_compile_definitions(
-  hmr PRIVATE $<$<BOOL:${WIN32}>:_CRT_NONSTDC_NO_DEPRECATE>)
-target_compile_definitions(hmr PRIVATE $<$<BOOL:${WIN32}>:__extension__>)
 target_compile_options(hmr PRIVATE ${WARNING_FLAGS})
-target_compile_options(hmr PRIVATE "-fverbose-asm")
-target_link_libraries(hmr INTERFACE $<$<BOOL:${UNIX}>:m>)
 target_compile_features(hmr PRIVATE c_std_11)
 
 set(EXPORT_FILE ${CMAKE_CURRENT_BINARY_DIR}/hmr/export.h)
@@ -97,15 +93,14 @@ install(FILES ${CMAKE_VERSION_FILE} ${CMAKE_CONFIG_FILE}
 install(FILES ${EXPORT_FILE} DESTINATION include/hmr)
 
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/README.md
-              ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.md
-        DESTINATION share/docs/${PROJECT_NAME})
+              ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.md DESTINATION share/docs/hmr)
 
 if(HMR_BUILD_TESTS)
   enable_testing()
   add_subdirectory(test)
 endif()
 
-set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
+set(CPACK_PACKAGE_NAME hmmer_reader)
 set(CPACK_PACKAGE_VENDOR "Danilo Horta")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "HMMER3 ASCII file reader")
 set(CPACK_PACKAGE_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})

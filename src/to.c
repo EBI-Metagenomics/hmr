@@ -1,20 +1,19 @@
 #include "to.h"
 #include <limits.h>
 #include <math.h>
-#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 
 static bool to_double(char const *str, double *val);
 
-bool to_lprob(char const *str, double *val)
+bool hmr_to_lprob(char const *str, double *val)
 {
     bool ok = to_double(str, val);
     *val = -(*val);
     return ok;
 }
 
-bool to_uint(char const *str, unsigned *val)
+bool hmr_to_uint(char const *str, unsigned *val)
 {
     unsigned long v = strtoul(str, NULL, 10);
     *val = (unsigned)v;

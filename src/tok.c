@@ -1,16 +1,17 @@
 #include "hmr/tok.h"
 #include "error.h"
 #include "hmr/error.h"
+#include "hmr/rc.h"
 #include "tok.h"
 #include <string.h>
 
 #define DELIM " \t\r"
 
 static void add_space_before_newline(char line[HMR_TOK_LINE_MAX]);
-static enum hmr_rc next_line(FILE *restrict fp, char error[HMR_ERROR_SIZE],
-                             char line[HMR_TOK_LINE_MAX]);
+static int next_line(FILE *restrict fp, char error[HMR_ERROR_SIZE],
+                     char line[HMR_TOK_LINE_MAX]);
 
-void tok_init(struct hmr_tok *tok, char *error)
+void hmr_tok_init(struct hmr_tok *tok, char *error)
 {
     tok->id = HMR_TOK_NL;
     tok->value = tok->line.data;
@@ -21,27 +22,27 @@ void tok_init(struct hmr_tok *tok, char *error)
     tok->error = error;
 }
 
-enum hmr_rc tok_next(struct hmr_tok *tok, FILE *restrict fp)
+int hmr_tok_next(struct hmr_tok *tok, FILE *restrict fp)
 {
-    enum hmr_rc rc = HMR_SUCCESS;
+    int rc = HMR_OK;
 
     if (tok->line.consumed)
     {
         if ((rc = next_line(fp, tok->error, tok->line.data)))
         {
-            if (rc == HMR_ENDFILE)
+            if (rc == HMR_EOF)
             {
                 tok->value = NULL;
                 tok->id = HMR_TOK_EOF;
                 tok->line.data[0] = '\0';
-                return HMR_SUCCESS;
+                return HMR_OK;
             }
             return rc;
         }
         tok->value = strtok_r(tok->line.data, DELIM, &tok->line.ctx);
         tok->line.number++;
 
-        if (!tok->value) return HMR_PARSEERROR;
+        if (!tok->value) return HMR_EPARSE;
     }
     else
         tok->value = strtok_r(NULL, DELIM, &tok->line.ctx);
@@ -59,21 +60,21 @@ enum hmr_rc tok_next(struct hmr_tok *tok, FILE *restrict fp)
 
     tok->line.consumed = tok->id == HMR_TOK_NL;
 
-    return HMR_SUCCESS;
+    return HMR_OK;
 }
 
-static enum hmr_rc next_line(FILE *restrict fp, char error[HMR_ERROR_SIZE],
-                             char line[HMR_TOK_LINE_MAX])
+static int next_line(FILE *restrict fp, char error[HMR_ERROR_SIZE],
+                     char line[HMR_TOK_LINE_MAX])
 {
     if (!fgets(line, HMR_TOK_LINE_MAX - 1, fp))
     {
-        if (feof(fp)) return HMR_ENDFILE;
+        if (feof(fp)) return HMR_EOF;
 
-        return error_io(error, ferror(fp));
+        return hmr_eio(error, ferror(fp));
     }
 
     add_space_before_newline(line);
-    return HMR_SUCCESS;
+    return HMR_OK;
 }
 
 static void add_space_before_newline(char line[HMR_TOK_LINE_MAX])
