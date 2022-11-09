@@ -41,7 +41,6 @@ function(hmr_add_test name srcs)
   add_executable(${name} ${srcs})
   target_link_libraries(${name} PRIVATE HMR::hmr)
   target_compile_options(${name} PRIVATE ${WARNING_FLAGS})
-  target_compile_features(${name} PRIVATE c_std_11)
   add_test(NAME ${name} COMMAND ${name})
 
   set(TMPDIR "${CMAKE_CURRENT_BINARY_DIR}/${name}.tmp")

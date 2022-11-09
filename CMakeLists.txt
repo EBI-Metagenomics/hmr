@@ -1,7 +1,7 @@
-cmake_minimum_required(VERSION 3.21.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.21 FATAL_ERROR)
 project(
   hmmer_reader
-  VERSION 0.1.5
+  VERSION 0.2.1
   LANGUAGES C)
 
 set(HMR_MAIN_PROJECT OFF)
@@ -47,7 +47,7 @@ target_include_directories(
 set_target_properties(hmr PROPERTIES VERSION ${PROJECT_VERSION})
 set_target_properties(hmr PROPERTIES SOVERSION ${PROJECT_VERSION_MAJOR})
 target_compile_options(hmr PRIVATE ${WARNING_FLAGS})
-target_compile_features(hmr PRIVATE c_std_11)
+target_compile_features(hmr PRIVATE c_std_23)
 
 set(EXPORT_FILE ${CMAKE_CURRENT_BINARY_DIR}/hmr/export.h)
 include(GenerateExportHeader)

@@ -44,7 +44,6 @@ struct hmr_prof
 
 HMR_API void hmr_prof_dump(struct hmr_prof const *prof, FILE *restrict fp);
 HMR_API void hmr_prof_init(struct hmr_prof *prof, struct hmr *hmr);
-HMR_API enum hmr_rc hmr_prof_read(struct hmr_prof *prof);
 HMR_API unsigned hmr_prof_length(struct hmr_prof const *prof);
 
 #endif
