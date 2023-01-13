@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.21 FATAL_ERROR)
 project(
   hmmer_reader
-  VERSION 0.2.1
+  VERSION 0.5.0
   LANGUAGES C)
 
 set(HMR_MAIN_PROJECT OFF)
@@ -19,8 +19,8 @@ option(HMR_BUILD_TESTS "Build the unit tests" ${HMR_BUILD_TESTS_DEFAULT})
 message(STATUS "HMR_MAIN_PROJECT: " ${HMR_MAIN_PROJECT})
 message(STATUS "HMR_BUILD_TESTS: " ${HMR_BUILD_TESTS})
 
-include(cmake/compiler-options.cmake)
 include(cmake/sanitizers.cmake)
+include(cmake/warnings.cmake)
 
 add_library(
   hmr
@@ -35,6 +35,7 @@ add_library(
 add_library(HMR::hmr ALIAS hmr)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_EXTENSIONS OFF)
 
 target_include_directories(
@@ -99,18 +100,3 @@ if(HMR_BUILD_TESTS)
   enable_testing()
   add_subdirectory(test)
 endif()
-
-set(CPACK_PACKAGE_NAME hmmer_reader)
-set(CPACK_PACKAGE_VENDOR "Danilo Horta")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "HMMER3 ASCII file reader")
-set(CPACK_PACKAGE_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
-set(CPACK_PACKAGE_CONTACT "Danilo Horta")
-set(CPACK_PACKAGE_VERSION_MINOR ${PROJECT_VERSION_MINOR})
-set(CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_PATCH})
-set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.md)
-set(CPACK_RESOURCE_FILE_README ${CMAKE_CURRENT_SOURCE_DIR}/README.md)
-set(CPACK_OUTPUT_FILE_PREFIX ${CMAKE_CURRENT_BINARY_DIR}/package)
-set(CPACK_VERBATIM_VARIABLES YES)
-set(CPACK_PACKAGE_RELOCATABLE YES)
-set(CPACK_MONOLITHIC_INSTALL YES)
-include(CPack)

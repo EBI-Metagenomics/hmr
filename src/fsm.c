@@ -195,9 +195,7 @@ enum hmr_state hmr_fsm_next(enum hmr_state state, struct hmr_tok *tok,
 
 char const *hmr_fsm_name(enum hmr_state state) { return state_name[state]; }
 
-int error_parse_arrow(struct hmr_tok *tok, unsigned i);
-
-int error_parse_arrow(struct hmr_tok *tok, unsigned i)
+static int error_parse_arrow(struct hmr_tok *tok, unsigned i)
 {
     if (i == HMR_TRANS_MM)
         return hmr_eparse(tok, "expected m->m");

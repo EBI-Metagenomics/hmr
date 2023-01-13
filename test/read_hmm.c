@@ -132,10 +132,10 @@ void test_hmm_corrupted2(void)
     HMR_PROF_DECLARE(prof, &hmr);
 
     unsigned prof_idx = 0;
+    unsigned node_idx = 0;
     int rc = HMR_OK;
     while (!(rc = hmr_next_prof(&hmr, &prof)))
     {
-        unsigned node_idx = 0;
         while (!(rc = hmr_next_node(&hmr, &prof)))
         {
             node_idx++;
@@ -145,6 +145,7 @@ void test_hmm_corrupted2(void)
         prof_idx++;
         EQ(rc, HMR_END);
     }
+    EQ(node_idx, 41);
     EQ(prof_idx, 1);
     EQ(rc, HMR_EPARSE);
     EQ(hmr.error, "Parse error: expected content before end-of-line: line 153");
@@ -165,10 +166,10 @@ void test_hmm_corrupted3(void)
     HMR_PROF_DECLARE(prof, &hmr);
 
     unsigned prof_idx = 0;
+    unsigned node_idx = 0;
     int rc = HMR_OK;
     while (!(rc = hmr_next_prof(&hmr, &prof)))
     {
-        unsigned node_idx = 0;
         while (!(rc = hmr_next_node(&hmr, &prof)))
         {
             node_idx++;
@@ -177,6 +178,7 @@ void test_hmm_corrupted3(void)
         EQ(hmr_prof_length(&prof), 0);
         prof_idx++;
     }
+    EQ(node_idx, 0);
     EQ(prof_idx, 0);
     EQ(rc, HMR_EPARSE);
     EQ(hmr.error, "Parse error: missing LENG field");
