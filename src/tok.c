@@ -1,3 +1,5 @@
+#define _POSIX_C_SOURCE 200112L
+
 #include "hmr/tok.h"
 #include "error.h"
 #include "hmr/error.h"
